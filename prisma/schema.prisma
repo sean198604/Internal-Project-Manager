@@ -1,0 +1,576 @@
+// Internal-Project-Manager · P0 schema
+// AI 相关表（ai_conversations / ai_messages / knowledge_sources / ai_settings）属 P2，届时单独 migration 添加。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────── Enums ───────────────
+
+enum Role {
+  ADMIN
+  MASTER
+  USER
+}
+
+/** 部门两级分类：先分「业务 / 职能」大类，再是具体部门 */
+enum DepartmentCategory {
+  BUSINESS
+  FUNCTION
+}
+
+enum ProjectStatus {
+  DRAFT
+  PLANNED
+  IN_PROGRESS
+  WAITING_ACCEPTANCE
+  COMPLETED
+  ARCHIVED
+  ON_HOLD
+  CANCELLED
+  MERGED
+}
+
+enum HealthStatus {
+  NORMAL
+  AT_RISK
+  DELAYED
+  ON_HOLD
+}
+
+enum Priority {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum SystemStatus {
+  ACTIVE
+  MAINTENANCE
+  DEPRECATED
+  OFFLINE
+  UNKNOWN
+}
+
+enum Environment {
+  DEVELOPMENT
+  TESTING
+  STAGING
+  PRODUCTION
+}
+
+enum DeploymentStatus {
+  ACTIVE
+  MAINTENANCE
+  DEPRECATED
+  OFFLINE
+  UNKNOWN
+}
+
+enum RelationType {
+  PARENT_CHILD
+  BRANCH
+  RELATED
+  MERGED
+  MIGRATED
+}
+
+enum AttachmentType {
+  DOCUMENT
+  SCREENSHOT
+  DEPLOYMENT
+  REQUIREMENT
+  TESTING
+  ACCEPTANCE
+  OTHER
+}
+
+enum TimelineEventType {
+  PROJECT_CREATED
+  STATUS_CHANGED
+  UPDATE_ADDED
+  OVERDUE_DETECTED
+  OWNER_CHANGED
+  DEPARTMENT_MIGRATED
+  PROJECT_MERGED
+  PROJECT_BRANCHED
+  COMPLETED
+  ACCEPTED
+  ARCHIVED
+  DOCUMENT_UPLOADED
+  VERSION_RELEASED
+  DEPLOYMENT_CHANGED
+  SHARE_CREATED
+  SHARE_REVOKED
+  RESTORED
+  RATING_CHANGED
+}
+
+// ─────────────── 组织 ───────────────
+
+model Department {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    @unique
+  name        String
+  category    DepartmentCategory @default(BUSINESS)
+  description String?   @db.Text
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  users          User[]
+  projects       Project[]
+  migrationsFrom ProjectMigration[] @relation("MigrationFrom")
+  migrationsTo   ProjectMigration[] @relation("MigrationTo")
+
+  @@index([isActive, sortOrder])
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  username     String    @unique
+  email        String?   @unique
+  displayName  String
+  passwordHash String
+  role         Role      @default(USER)
+  departmentId String?   @db.Uuid
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  ownedProjects      Project[] @relation("ProjectOwner")
+  createdProjects    Project[] @relation("ProjectCreator")
+  developedProjects  Project[] @relation("ProjectDeveloper")
+  maintainedProjects Project[] @relation("ProjectMaintainer")
+  acceptedProjects   Project[] @relation("ProjectAcceptor")
+  archivedProjects   Project[] @relation("ProjectArchiver")
+  confirmedArchives  Project[] @relation("ProjectArchiveConfirmer")
+
+  updates        ProjectUpdate[]
+  versions       ProjectVersion[]
+  attachments    ProjectAttachment[]
+  documents      ProjectDocument[]
+  sharesCreated  ProjectShareToken[]  @relation("ShareCreator")
+  sharesRevoked  ProjectShareToken[]  @relation("ShareRevoker")
+  shareAdds      ShareTokenProject[]   @relation("ShareProjectAdder")
+  migrations     ProjectMigration[]
+  merges         ProjectMerge[]
+  relations      ProjectRelation[]
+  checklistItems ProjectArchiveChecklist[]
+  timelineEvents ProjectTimelineEvent[]
+  auditLogs      AuditLog[]
+
+  @@index([role, isActive])
+  @@index([departmentId])
+}
+
+model ProjectType {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    @unique
+  name        String
+  color       String?
+  description String?   @db.Text
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  projects Project[]
+
+  @@index([isActive, sortOrder])
+}
+
+// ─────────────── 项目编号序列 ───────────────
+
+model ProjectSequence {
+  year      Int      @id
+  lastValue Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────── 核心：Project ───────────────
+
+model Project {
+  id          String  @id @default(uuid()) @db.Uuid
+  projectCode String  @unique
+  name        String
+  shortName   String?
+  systemName  String?
+
+  description        String? @db.Text
+  objective          String? @db.Text
+  requirement        String? @db.Text
+  acceptanceCriteria Json?
+
+  departmentId         String  @db.Uuid
+  projectTypeId        String  @db.Uuid
+  ownerId              String  @db.Uuid
+  creatorId            String  @db.Uuid
+  originalDeveloperId  String? @db.Uuid
+  currentMaintainerId  String? @db.Uuid
+
+  priority     Priority      @default(P2)
+  status       ProjectStatus @default(DRAFT)
+  healthStatus HealthStatus  @default(NORMAL)
+  progress     Int           @default(0)
+  /** 项目星级 0-5：0=未评分；仅 ADMIN/MASTER 可评 */
+  rating       Int           @default(0)
+
+  startDate           DateTime? @db.Date
+  dueDate             DateTime? @db.Date
+  actualCompletedDate DateTime? @db.Date
+  acceptanceDate      DateTime? @db.Date
+  acceptedById        String?   @db.Uuid
+  acceptanceNote      String?   @db.Text
+  cancelledReason     String?   @db.Text
+
+  allowDepartmentEdit Boolean @default(false)
+
+  parentProjectId String? @db.Uuid
+  rootProjectId   String? @db.Uuid
+
+  systemStatus        SystemStatus @default(UNKNOWN)
+  currentVersion      String?
+  offlinedAt          DateTime?
+  offlineReason       String?      @db.Text
+  replacedByProjectId String?      @db.Uuid
+
+  specialNotes     String? @db.Text
+  maintenanceNotes String? @db.Text
+  handoverInfo     String? @db.Text
+  businessValue    String? @db.Text
+
+  archiveCompleteness  Int       @default(0)
+  archiveConfirmedById String?   @db.Uuid
+  archiveConfirmedAt   DateTime?
+  archivedAt           DateTime?
+  archivedById         String?   @db.Uuid
+
+  lastUpdateAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  department  Department  @relation(fields: [departmentId], references: [id])
+  projectType ProjectType @relation(fields: [projectTypeId], references: [id])
+  owner       User        @relation("ProjectOwner", fields: [ownerId], references: [id])
+  creator     User        @relation("ProjectCreator", fields: [creatorId], references: [id])
+  developer   User?       @relation("ProjectDeveloper", fields: [originalDeveloperId], references: [id])
+  maintainer  User?       @relation("ProjectMaintainer", fields: [currentMaintainerId], references: [id])
+  acceptedBy  User?       @relation("ProjectAcceptor", fields: [acceptedById], references: [id])
+  archivedBy  User?       @relation("ProjectArchiver", fields: [archivedById], references: [id])
+  archiveConfirmedBy User? @relation("ProjectArchiveConfirmer", fields: [archiveConfirmedById], references: [id])
+
+  parent        Project?  @relation("ProjectLineage", fields: [parentProjectId], references: [id], onDelete: SetNull)
+  children      Project[] @relation("ProjectLineage")
+  root          Project?  @relation("ProjectRoot", fields: [rootProjectId], references: [id], onDelete: SetNull)
+  rootChildren  Project[] @relation("ProjectRoot")
+  replacedBy    Project?  @relation("ProjectReplacement", fields: [replacedByProjectId], references: [id], onDelete: SetNull)
+  replacedFrom  Project[] @relation("ProjectReplacement")
+
+  updates          ProjectUpdate[]
+  versions         ProjectVersion[]
+  documents        ProjectDocument[]
+  deployments      ProjectDeployment[]
+  shareLinks       ShareTokenProject[]
+  migrations       ProjectMigration[]
+  mergesAsTarget   ProjectMerge[]   @relation("MergeTarget")
+  mergesAsSource   ProjectMerge[]   @relation("MergeSource")
+  relationsFrom    ProjectRelation[] @relation("RelationFrom")
+  relationsTo      ProjectRelation[] @relation("RelationTo")
+  checklist        ProjectArchiveChecklist[]
+  timeline         ProjectTimelineEvent[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@index([projectTypeId])
+  @@index([ownerId])
+  @@index([dueDate])
+  @@index([lastUpdateAt])
+  @@index([updatedAt])
+  @@index([deletedAt])
+  @@index([parentProjectId])
+  @@index([rootProjectId])
+  @@index([status, dueDate])
+  @@index([deletedAt, status, updatedAt])
+}
+
+// ─────────────── 更新流 ───────────────
+
+model ProjectUpdate {
+  id            String         @id @default(uuid()) @db.Uuid
+  projectId     String         @db.Uuid
+  progress      Int?
+  status        ProjectStatus?
+  healthStatus  HealthStatus?
+  content       String         @db.Text
+  currentIssues String?        @db.Text
+  nextSteps     String?        @db.Text
+  createdById   String         @db.Uuid
+  createdAt     DateTime       @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([createdAt])
+}
+
+// ─────────────── 版本 ───────────────
+
+model ProjectVersion {
+  id          String    @id @default(uuid()) @db.Uuid
+  projectId   String    @db.Uuid
+  version     String
+  releaseDate DateTime? @db.Date
+  changeNotes String?   @db.Text
+  createdById String    @db.Uuid
+  createdAt   DateTime  @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@unique([projectId, version])
+  @@index([projectId, releaseDate(sort: Desc)])
+}
+
+// ─────────────── 文件与文档 ───────────────
+
+model ProjectAttachment {
+  id               String   @id @default(uuid()) @db.Uuid
+  storageKey       String   @unique
+  originalFileName String
+  mimeType         String
+  sizeBytes        Int
+  checksum         String
+  uploadedById     String   @db.Uuid
+  createdAt        DateTime @default(now())
+
+  uploadedBy User              @relation(fields: [uploadedById], references: [id])
+  documents  ProjectDocument[]
+
+  @@index([checksum])
+}
+
+model ProjectDocument {
+  id             String         @id @default(uuid()) @db.Uuid
+  projectId      String         @db.Uuid
+  attachmentId   String         @db.Uuid
+  title          String
+  docType        AttachmentType
+  category       String?
+  version        String         @default("1.0")
+  documentGroupId String        @default(uuid()) @db.Uuid
+  isCurrent      Boolean        @default(true)
+  isInternal     Boolean        @default(false)
+  notes          String?        @db.Text
+  uploadedById   String         @db.Uuid
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attachment ProjectAttachment @relation(fields: [attachmentId], references: [id])
+  uploadedBy User              @relation(fields: [uploadedById], references: [id])
+
+  @@index([projectId, docType])
+  @@index([documentGroupId, isCurrent])
+  @@index([projectId, deletedAt])
+}
+
+// ─────────────── 部署 ───────────────
+
+model ProjectDeployment {
+  id                 String           @id @default(uuid()) @db.Uuid
+  projectId          String           @db.Uuid
+  environment        Environment
+  serverName         String?
+  serverIp           String?
+  hostname           String?
+  port               Int?
+  protocol           String?          @default("http")
+  deploymentPath     String?
+  serviceName        String?
+  runtime            String?
+  database           String?
+  version            String?
+  status             DeploymentStatus @default(UNKNOWN)
+  notes              String?          @db.Text
+  credentialLocation String?          @db.Text
+  lastVerifiedAt     DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, environment, serverIp, port])
+  @@index([projectId, environment])
+  @@index([serverIp, port])
+}
+
+// ─────────────── 分享（一个链接 = 多个项目）───────────────
+
+model ProjectShareToken {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String?   // 分享名称，缺省自动生成
+  token          String    @unique
+  createdById    String    @db.Uuid
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  revokedById    String?   @db.Uuid
+  lastAccessedAt DateTime?
+  accessCount    Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  createdBy User                @relation("ShareCreator", fields: [createdById], references: [id])
+  revokedBy User?               @relation("ShareRevoker", fields: [revokedById], references: [id])
+  projects  ShareTokenProject[]
+
+  @@index([createdById, revokedAt])
+  @@index([revokedAt, createdAt])
+}
+
+/** 分享链接与项目的多对多关联（勾选分享的每个项目一条） */
+model ShareTokenProject {
+  id           String   @id @default(uuid()) @db.Uuid
+  shareTokenId String   @db.Uuid
+  projectId    String   @db.Uuid
+  addedById    String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  shareToken ProjectShareToken @relation(fields: [shareTokenId], references: [id], onDelete: Cascade)
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  addedBy    User              @relation("ShareProjectAdder", fields: [addedById], references: [id])
+
+  @@unique([shareTokenId, projectId])
+  @@index([projectId])
+}
+
+// ─────────────── 迁移 / 合并 / 关系 ───────────────
+
+model ProjectMigration {
+  id               String   @id @default(uuid()) @db.Uuid
+  projectId        String   @db.Uuid
+  fromDepartmentId String   @db.Uuid
+  toDepartmentId   String   @db.Uuid
+  reason           String   @db.Text
+  migratedById     String   @db.Uuid
+  createdAt        DateTime @default(now())
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  from       Department @relation("MigrationFrom", fields: [fromDepartmentId], references: [id])
+  to         Department @relation("MigrationTo", fields: [toDepartmentId], references: [id])
+  migratedBy User       @relation(fields: [migratedById], references: [id])
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectMerge {
+  id              String   @id @default(uuid()) @db.Uuid
+  mergeBatchId    String   @db.Uuid
+  targetProjectId String   @db.Uuid
+  sourceProjectId String   @db.Uuid
+  reason          String   @db.Text
+  mergedById      String   @db.Uuid
+  createdAt       DateTime @default(now())
+
+  target   Project @relation("MergeTarget", fields: [targetProjectId], references: [id], onDelete: Cascade)
+  source   Project @relation("MergeSource", fields: [sourceProjectId], references: [id], onDelete: Cascade)
+  mergedBy User    @relation(fields: [mergedById], references: [id])
+
+  @@unique([mergeBatchId, sourceProjectId])
+  @@index([targetProjectId])
+  @@index([sourceProjectId])
+}
+
+model ProjectRelation {
+  id            String       @id @default(uuid()) @db.Uuid
+  fromProjectId String       @db.Uuid
+  toProjectId   String       @db.Uuid
+  relationType  RelationType
+  note          String?      @db.Text
+  createdById   String       @db.Uuid
+  createdAt     DateTime     @default(now())
+
+  from      Project @relation("RelationFrom", fields: [fromProjectId], references: [id], onDelete: Cascade)
+  to        Project @relation("RelationTo", fields: [toProjectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@unique([fromProjectId, toProjectId, relationType])
+  @@index([fromProjectId, relationType])
+  @@index([toProjectId, relationType])
+}
+
+// ─────────────── 归档 ───────────────
+
+model ProjectArchiveChecklist {
+  id            String    @id @default(uuid()) @db.Uuid
+  projectId     String    @db.Uuid
+  itemKey       String
+  isChecked     Boolean   @default(false)
+  isAutoChecked Boolean   @default(false)
+  checkedById   String?   @db.Uuid
+  checkedAt     DateTime?
+  note          String?   @db.Text
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  checkedBy User?   @relation(fields: [checkedById], references: [id])
+
+  @@unique([projectId, itemKey])
+}
+
+// ─────────────── 时间线 ───────────────
+
+model ProjectTimelineEvent {
+  id          String             @id @default(uuid()) @db.Uuid
+  projectId   String             @db.Uuid
+  eventType   TimelineEventType
+  title       String
+  description String?            @db.Text
+  meta        Json?
+  actorId     String?            @db.Uuid
+  occurredAt  DateTime           @default(now())
+  createdAt   DateTime           @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id])
+
+  @@index([projectId, occurredAt(sort: Desc)])
+  @@index([eventType])
+}
+
+// ─────────────── 审计 ───────────────
+
+model AuditLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @db.Uuid
+  action        String
+  entity        String
+  entityId      String?
+  changedFields String[]
+  before        Json?
+  after         Json?
+  reason        String?  @db.Text
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt])
+}
