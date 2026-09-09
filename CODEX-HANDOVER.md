@@ -1,6 +1,6 @@
 # Internal-Project-Manager（项目管理中心）· Codex 交接文档
 
-> 生成时间：2026-09-09 17:30（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
+> 更新时间：2026-09-09 22:23（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
 > 交接目的：完整进度 + 系统要点 + **未完成待办**，供 Codex 无缝接手。
 > 项目路径：`C:\Users\Administrator\Documents\Github\Internal-Project-Manager`
 > GitHub：`sean198604/Internal-Project-Manager`（**PRIVATE**，远端已建并 push）
@@ -20,12 +20,12 @@
 
 | 项目 | 状态 |
 |---|---|
-| 应用 Dev Server | ✅ 运行中，监听 `0.0.0.0:3010`（http://localhost:3010 或 http://192.168.1.246:3010） |
+| 应用 Dev Server | ⏸️ 当前未启动；需要时运行 `npm run dev`，监听 `0.0.0.0:3010`（http://localhost:3010 或 http://192.168.1.246:3010） |
 | 数据库 | ✅ Docker 容器 `ipm-postgres`（postgres:16-alpine），host 端口 5432，库 `ipm` |
 | 管理员账号 | `admin`（密码由管理员维护，不写入仓库；唯一账号；admin id `5af39e51-f110-423d-b6ea-83691229c423`） |
 | 类型检查 | `npx tsc --noEmit` 应为 0 错误（每次改完必跑） |
-| git | ✅ 已建仓，远端 private 已同步，当前 HEAD `3e2d751`（Initial commit） |
-| ⚠️ 未提交改动 | `CODEX-HANDOVER.md`、`src/components/layout/sidebar.tsx`、`src/features/shares/share-manager.tsx`（09-09 前端修改）、`public/artifacts/`（进度时间轴 HTML，未跟踪）——**接手第一步 commit** |
+| git | ✅ 已建仓，远端 private 的 `main` 已同步；Codex 接手基线提交 `3072b8b` |
+| 工作区落地 | ✅ 侧栏、分享选择、时间轴产物与最新版交接文档已提交并推送；文档中的明文登录凭据已脱敏 |
 
 ### 环境铁律（实测结论，勿再改）
 - 应用端口 **3010**（3000 与 7000-7010 被 Docker Desktop 代理占用，不可用）
@@ -64,13 +64,12 @@ cat x.sql | docker exec -i ipm-postgres psql -U ipm -d ipm      # 批量 SQL 唯
   6. **项目星级** 1-5（admin 打分，RATING_CHANGED 事件，不受终态限制）
 - **状态机体验修复**：点「已完成」无效 → 新增 `status-flow.ts`（BFS 找路径逐跳 PATCH）+ 详情页绿色「✓ 标记已完成」直达按钮；编辑器加宽 1152px + 生命周期/状态/进度/优先级高亮载体
 - **09-09 前端 3 项**：侧栏 sticky 固定视口（用户区常驻底部不再被长内容顶走）；分享弹窗加「全选已归档」（后修 bug 为替换语义）
-- **进度更新回填机制（新能力，用户重点要求）**：从各项目 `.workbuddy/memory/*.md` 提炼迭代节点，双写 `ProjectUpdate`（进度/内容/卡点/下一步）+ `ProjectTimelineEvent(UPDATE_ADDED)`。已回填 **6 个项目共 53 条**（见 §4）
+- **进度更新回填机制（新能力，用户重点要求）**：从各项目 `.workbuddy/memory/*.md` 提炼迭代节点；无记忆目录时以 Git、Docker 元数据和项目文档交叉验证。双写 `ProjectUpdate`（进度/内容/卡点/下一步）+ `ProjectTimelineEvent(UPDATE_ADDED)`。已回填 **8 个项目共 66 条**（见 §4）
 
 ### ⏳ 未完成（Codex 接手待办，详见 §8）
-1. git 未提交改动落地（sidebar/share-manager/artifacts）
-2. **进度更新回填剩余 17 个项目**（每批 2 个，用户原话「不求快，2个2个来，真实准确完整」）
-3. PRJ-2026-0006 名称笔误修正（见 §8-C）
-4. 杂项：TESTTYPE 测试类型可删；PRJ-2026-0024 档案细节核对
+1. **进度更新回填剩余 15 个项目**（每批 2 个，用户原话「不求快，2个2个来，真实准确完整」）
+2. PRJ-2026-0006 名称笔误修正（见 §8-C）
+3. 杂项：TESTTYPE 测试类型可删；PRJ-2026-0024 档案细节核对
 
 ### 尚未启动（P1 / P2）
 - P1：全局搜索 / 历史批量整理 / 资产搜索 / 导出 / 基础备份 / Health Check 深化 / Audit Log 报表
@@ -85,9 +84,11 @@ cat x.sql | docker exec -i ipm-postgres psql -U ipm -d ipm      # 批量 SQL 唯
 - 22 项归档完整度：21 项 100/100，0020 aiproxy 90/100（无 Web UI，特殊注意事项已说明）
 - 星级已打样例：0003 汇率 = 5 星
 
-### 进度更新回填覆盖（ProjectUpdate 计数，6/23）
+### 进度更新回填覆盖（ProjectUpdate 计数，8/23）
 | 项目 | 条数 | 时间跨度 |
 |---|---|---|
+| 0017 FastGPT(3000) | 7 | 05-13 → 07-09 |
+| 0021 NewsNow(4444) | 6 | 05-22 → 07-30 |
 | 0001 装箱计算器(7002) | 14 | 04-22 → 09-02 |
 | 0010 文化积分(7006) | 11 | 04-20 → 09-07 |
 | 0023 HR 简历工具(8765) | 11 | 09-04 → 09-07 |
@@ -95,7 +96,7 @@ cat x.sql | docker exec -i ipm-postgres psql -U ipm -d ipm      # 批量 SQL 唯
 | 0002 Doc-Slim(7001) | 6 | 05-14 → 08-28 |
 | 0024 报价单 ADA | 1 | 建档 |
 
-**未回填 17 个**（端口升序）：3000 FastGPT(0017) / 4444 NewsNow(0021) / 5050 汇率(0003) / 5051 email-web(0015) / 7000 提示词库(0005) / 7003 利润(0009) / 7004 客户调研(0008) / 7005 产品调研(0007) / 7008 doc-center(0012) / 7009 文化日历(0013) / 7010 Dify(0018) / 7020 n8n(0019) / 7021 batch(0016) / 8000 名片识别(0014) / 8886 DockSight(0022) / 8888 门户(0006) / aiproxy(0020)
+**未回填 15 个**（端口升序）：5050 汇率(0003) / 5051 email-web(0015) / 7000 提示词库(0005) / 7003 利润(0009) / 7004 客户调研(0008) / 7005 产品调研(0007) / 7008 doc-center(0012) / 7009 文化日历(0013) / 7010 Dify(0018) / 7020 n8n(0019) / 7021 batch(0016) / 8000 名片识别(0014) / 8886 DockSight(0022) / 8888 门户(0006) / aiproxy(0020)
 
 ### 部门（16 行 = 15 在用 + 1 停用测试 TEST）
 BUSINESS 业务类：FESTIVAL 节日 / OUTDOOR 户外 / ECOMMERCE 电商 / SEA_SUPPLY 东南亚供应链 / JP_GOODS 日用百货 / KITCHEN 餐厨 / MOBILE_LIGHT 移动光源 / JAPAN 日本 / SHANGHAI 上海
@@ -197,17 +198,19 @@ storage/documents/       # 上传文件落盘（gitignored）
 
 ## 8. Codex 接手待办（PENDING，按优先级）
 
-### Task A：git 工作区落地（5 分钟内可完成）
-- 当前未提交：`CODEX-HANDOVER.md`、`src/components/layout/sidebar.tsx`、`src/features/shares/share-manager.tsx`（09-09 侧栏固定 + 分享全选归档），`public/artifacts/`（HR 进度时间轴 HTML 演示产物）
-- commit message 建议：`feat: sticky sidebar, share select-all archived, artifacts`，然后 push origin main
-- 仓库当前仅 1 个初始提交，历史薄，建议后续**按功能小步提交**（diff-only，别一次全堆）
+### Task A：git 工作区落地（✅ 已完成）
+- `CODEX-HANDOVER.md`、侧栏固定、分享全选已归档与 HR 时间轴演示产物已提交并推送到 `origin/main`
+- 接手基线提交：`3072b8b feat: refine sidebar and share selection`
+- 交接文档中的明文登录凭据已脱敏；旧初始提交仍可回溯到历史文本，实际登录凭据应由管理员另行轮换
+- 后续继续**按功能小步提交**（diff-only，别一次全堆）
 
-### Task B：进度更新回填剩余 17 个项目（主任务，用户持续关注）
+### Task B：进度更新回填剩余 15 个项目（主任务，用户持续关注）
 - 用户原话：「把其他项目逐个的进度更新完整补充进去，不求快，**2个2个来**，真实准确完整，把项目写清楚」「继续进度更新回填」
 - 方法（已验证 4 批）：读各项目 `.workbuddy/memory/*.md`（按日期排序）+ `MEMORY.md` → 提炼 5-15 个关键迭代节点 → 双写 ProjectUpdate + ProjectTimelineEvent → 刷新 lastUpdateAt → DB 验证（`createdAt + interval '8 hours'` 显示）
 - 写 SQL 用项目根临时文件 `.tmp_*.sql` → `cat .tmp_*.sql | docker exec -i ipm-postgres psql -U ipm -d ipm` → 用完删除
 - 数据源目录：`C:/Users/Administrator/Documents/Github/<项目名>/.workbuddy/memory/`（batch-product-studio 在 `D:/batch-product-studio`）
-- 顺序（端口升序，每批 2 个）：下一批 **3000 FastGPT(0017) + 4444 NewsNow(0021)** → 5050(0003)+5051(0015) → 7000(0005)+7003(0009) → 7004(0008)+7005(0007) → 7008(0012)+7009(0013) → 7010(0018)+7020(0019) → 7021(0016)+8000(0014) → 8886(0022)+8888(0006) → aiproxy(0020)
+- 已完成首批：**3000 FastGPT(0017) 7 条 + 4444 NewsNow(0021) 6 条**，共 13 条；双写、时区、事件配对和进度单调性均已验证
+- 顺序（端口升序，每批 2 个）：下一批 **5050(0003)+5051(0015)** → 7000(0005)+7003(0009) → 7004(0008)+7005(0007) → 7008(0012)+7009(0013) → 7010(0018)+7020(0019) → 7021(0016)+8000(0014) → 8886(0022)+8888(0006) → aiproxy(0020)
 - ⚠️ 记忆文件若含真实 API Key（如 codex-card、batch），**只写配置姿势，不写 Key**
 
 ### Task C：数据修正与杂项
@@ -238,7 +241,7 @@ storage/documents/       # 上传文件落盘（gitignored）
 ## 10. 近期变更明细（按天，09-06 → 09-09）
 
 ### 09-09（今日）
-1. **进度更新回填机制落地并回填 4 批**：试点 0023 HR(11 条) → 0010 文化积分(11) + 0011 众瀚四季(10) → 0001 装箱计算器(14) + 0002 Doc-Slim(6)。每批读项目记忆日志提炼节点，双写 ProjectUpdate+ProjectTimelineEvent，lastUpdateAt 同步
+1. **进度更新回填机制落地并回填 5 批**：试点 0023 HR(11 条) → 0010 文化积分(11) + 0011 众瀚四季(10) → 0001 装箱计算器(14) + 0002 Doc-Slim(6) → 0017 FastGPT(7) + 0021 NewsNow(6)。累计 8 个项目 66 条；每批读取项目记忆或用 Git/Docker/项目文档交叉验证，双写 ProjectUpdate+ProjectTimelineEvent，lastUpdateAt 同步
 2. **前端 3 项修改**：① sidebar.tsx aside 加 `md:sticky md:top-0 md:h-screen` → 侧栏固定不随内容滚、用户区（Admin/系统管理员/改密/退出）常驻底部；② 分享弹窗加「全选已归档」按钮；③ 修复全选已归档累积逻辑 bug → 替换语义
 3. **六项任务（前日启动今日收尾）**：见 §3；含部门两级分类、星级、改密 API
 4. **时区验证坑确认**：Prisma DateTime = PG 无时区 timestamp；验证 +8h 而非 AT TIME ZONE（§7-7）
@@ -286,4 +289,4 @@ storage/documents/       # 上传文件落盘（gitignored）
 
 ---
 
-> **给 Codex 的一句话**：系统已稳定运行，当前**最高优先 = Task B 进度回填**（每批 2 个项目，从 3000 FastGPT + 4444 NewsNow 开始），数据源在各项目 `.workbuddy/memory/`，务必真实准确、不编造、不含密钥。
+> **给 Codex 的一句话**：系统数据库稳定，当前**最高优先 = Task B 进度回填**（每批 2 个项目，下一批 5050 汇率 + 5051 email-web），优先读取各项目 `.workbuddy/memory/`；缺失时以 Git、Docker 元数据和项目文档交叉验证，务必真实准确、不编造、不含密钥。
