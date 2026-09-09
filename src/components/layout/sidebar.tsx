@@ -141,7 +141,7 @@ export function Sidebar({ role, displayName }: { role: Role; displayName: string
     <aside
       data-collapsed={collapsed ? '1' : '0'}
       className={cn(
-        'hidden shrink-0 flex-col bg-white border-r border-slate-200 transition-[width] duration-200 ease-out md:flex',
+        'hidden shrink-0 flex-col bg-white border-r border-slate-200 transition-[width] duration-200 ease-out md:sticky md:top-0 md:h-screen md:flex',
         collapsed ? 'w-[68px]' : 'w-[224px]',
       )}
     >

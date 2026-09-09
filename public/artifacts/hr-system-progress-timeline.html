@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="RXtKQAQFvMbuGdlr7YPZIl">
+<head data-page-node-id="p9VcHTY6zZ9W8h5YOJFNdZ">
+<meta charset="UTF-8" data-page-node-id="BqU8kQwTZm2MEBFH4Q5Ank" />
+<title>HR-System v3.2 · 进度时间轴回填</title>
+<style>
+  :root { --bg:#f7f8fa; --card:#fff; --line:#e5e8ef; --text:#1f2937; --muted:#6b7280; --brand:#4f6ef7; --accent:#10b981; --warn:#f59e0b; --danger:#ef4444; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); }
+  .container { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+  header h1 { font-size: 26px; margin: 0 0 8px; }
+  header p.sub { color: var(--muted); margin: 0; font-size: 14px; }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; }
+  .stat .label { color: var(--muted); font-size: 12px; }
+  .stat .val { font-size: 24px; font-weight: 600; margin-top: 4px; }
+  .progress-bar { height: 8px; background: linear-gradient(to right, #4f6ef7, #10b981); border-radius: 4px; margin: 4px 0; position: relative; }
+  .progress-bar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, transparent 0, rgba(255,255,255,.4) 50%, transparent 100%); }
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--line); }
+  .item { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+  .item::before { content: ''; position: absolute; left: -22px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--brand); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--brand); }
+  .item.archived::before { background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ts { background: #eef2ff; color: var(--brand); padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .pct { font-weight: 600; color: var(--text); }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .badge-arch { background: #d1fae5; color: #047857; }
+  .badge-doc { background: #fef3c7; color: #b45309; }
+  .badge-dep { background: #dbeafe; color: #1e40af; }
+  .badge-merge { background: #ede9fe; color: #6d28d9; }
+  .content { font-size: 14px; line-height: 1.6; margin: 8px 0; }
+  .issue, .next { font-size: 13px; line-height: 1.5; padding: 8px 12px; border-left: 3px solid; border-radius: 0 6px 6px 0; margin: 6px 0; }
+  .issue { background: #fff7ed; border-color: var(--warn); color: #92400e; }
+  .next { background: #f0f9ff; border-color: #3b82f6; color: #1e40af; }
+  .issue-label, .next-label { font-weight: 600; margin-right: 6px; }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body data-page-node-id="ToCZpKaRO0vDV0wGJmgDDy">
+<div class="container" data-page-node-id="FQrW4wI30FfP5Wo19Xdo7t">
+  <header data-page-node-id="6CgfW26mdUjjAZCDDYZOzq">
+    <h1 data-page-node-id="NkyFInjQIT65hg8LChCDcd">主服务器8765 · HR 人事工作台（v3.2）</h1>
+    <p class="sub" data-page-node-id="vThYDu7viIbHZd8Raafenx">从项目文件夹 <code data-page-node-id="P0hoKkCsxRO6MCA2hgHiDr">C:\Users\Administrator\Documents\Github\HR-System\.workbuddy\memory\</code> 抽取 11 个迭代节点，回填至 IPM「进度更新」Tab · PRJ-2026-0023</p>
+  </header>
+
+  <div class="summary" data-page-node-id="QFQRQibuzWABgGQd6U7B0R">
+    <div class="stat" data-page-node-id="boB2QmkqgaYGAkPAa6IaBt"><div class="label" data-page-node-id="ltReE53l9LyhgiYfsvIW87">进度更新条数</div><div class="val" data-page-node-id="0HAaTYbRuJE4iS4IrwV4lI">11</div></div>
+    <div class="stat" data-page-node-id="tH5R761t719BRAdO7iidlF"><div class="label" data-page-node-id="CmrgVxD8sdvG2lRrDb8RSA">时间范围</div><div class="val" style="font-size:16px" data-page-node-id="cM8ZaOHrOHVlk5nKJcWTZG">09-04 → 09-07</div></div>
+    <div class="stat" data-page-node-id="DwEOs1DeFYTPFCbZCAZXDg"><div class="label" data-page-node-id="opDNNE6uBNeGH4VSEJqlFC">最终进度</div><div class="val" data-page-node-id="S170rVPoxVBJNNnFVh2qTv">100%</div><div class="progress-bar" data-page-node-id="Rfqh5Y6VoxPPbXudJJylGq"></div></div>
+    <div class="stat" data-page-node-id="atBy32CWDAtSE5UHNNlN8H"><div class="label" data-page-node-id="n4neB73zdoAtPy8qVMEPfd">测试基线</div><div class="val" style="font-size:16px" data-page-node-id="KW5BXt2T2l7EpjdQWp7k5X">offline 29 ✅ · e2e 146 ✅</div></div>
+  </div>
+
+  <div class="timeline" id="timeline" data-page-node-id="2ukuA8O7PC1RCLXeQFpm6m"></div>
+</div>
+
+<script>
+const data = [
+  { ts: "09-04 11:00", pct: 25, content: "v1.0 纯前端直连 Anthropic → v2.0 本地后端完整重建。改架构：FastAPI + SQLite + 可配置 provider（先接智谱 GLM）；功能：SQLite 存档 + 候选人库、批量 Excel/CSV 导出、长简历分段处理；交付 server.py/providers.py/prompt.py/parser.py/db.py/config.py/web/index.html + 启动.bat + tests/。测试：offline 29 + e2e 50 全绿。决策：放弃纯前端，明确不要图片自动压缩；长简历代码层合并（标量取首个非空、数组去重）；PDF 直传失败自动回退 PyMuPDF 逐页渲染 PNG。", issue: "原 v1.0 第 6 条要求「工作年限没写就按起始年份估算」——这条提示词本身违反不编造原则未在该版修复；依赖 Anthropic 国外 API，不便国内使用。", next: "Sean 需要去 D:\\HR\\.env 复制 .env.example 并填入智谱 Key，重启做真机验证。" },
+  { ts: "09-04 15:30", pct: 40, content: "真机调参 + Docker 化。① 实测发现 glm-4.6v-flash 高峰期 429 限流不可用 → 切付费 glm-4.6v；② MAX_TOKENS=16000 + THINKING=enabled 铁律（16K≈15s/份，32K≈49s/份，原 32K shared token 时 thinking 拖到 49s）；③ providers.py 重构 BaseProvider.chat 加 429 指数退避（MAX_RETRIES=4 / RETRY_BASE_DELAY=3）+ RateLimited 异常；④ 修原 v1.0 提示词：删「年限估算」违规条款 + 新增第 9 条禁止占位修饰词 + 第 8 条薪资只填数值不带「合计」前缀；⑤ Dockerfile python:3.12-slim + docker-compose + 启动-docker.bat + .dockerignore；容器 resume-tool 127.0.0.1:8765 运行；PDF base64 与 PNG fallback 均验证。", issue: "残缺简历实测原 prompt 输出「（估算）」空壳值（比留空更糟，HR 可能误以为已核实）。PyMuPDF 入口需用 pymupdf 包名（fitz 已弃用告警）。", next: "真机验证后准备给局域网 HR 试用，需改端口映射为 0.0.0.0 + 防火墙放行。" },
+  { ts: "09-04 19:00", pct: 55, content: "v2.0 → v2.1 用户体系：登录墙（除 /api/auth/login + /logout 外全部 401）、cookie hr_sid（HttpOnly + SameSite=Lax）、pbkdf2_sha256 密码哈希（200k 迭代 + 随机盐，纯标准库）、ensure_admin 默认管理员 admin/admin123（仅当 users 表空时建一次）、POST /api/auth/login /logout / GET /api/auth/me / POST /api/auth/password 接口、前端登录视图不闪烁 + apiFetch 401 自动弹回登录页 + 导出改 blob 下载。Dockerfile COPY 行补 auth.py。e2e 50 → 68 项全绿。", issue: "冒烟测试曾改坏 admin，DELETE users/sessions 重建；前端裸 window.location 下载 401 JSON 暴露鉴权失败。", next: "改默认密码 + 改端口映射为 0.0.0.0:8765 + 防火墙放行，支持局域网 HR 试用。" },
+  { ts: "09-04 21:00", pct: 58, content: "局域网访问修复：docker-compose.yml 端口映射 127.0.0.1:8765:8765 → 8765:8765（全监听）；Windows 防火墙 netsh advfirewall 入站 TCP 8765 profile=any 新增规则「HR Resume Tool 8765」。netstat 验证 0.0.0.0:8765 LISTENING；本机 curl http://192.168.1.73:8765 首页壳 200；/api/config 未会话 401（登录墙仍生效）。", issue: "只监听回环时局域网 IP 上无监听；开放前提默认密码 admin123 未改，⚠️ 提醒 Sean 尽快改密。", next: "加快节奏补 v3.0 多用户协作能力 + 数据隔离。" },
+  { ts: "09-04 23:00", pct: 80, content: "v2.1 → v3.0 人事工作台大重构（多用户协作 + 导出强化），五条需求全落地：① 默认密不上前端，登录页脚注「账号由管理员分配」；② 界面重构为 ATS App Shell（左导航 📄/🗂️/👥 + 顶栏 + hash 路由，参考 Lever/Greenhouse）；③ 独立表单修改页 #/c/:id/edit（关键信息/外贸/薪资/自我评价/教育/证书/工作经历可增删行/空窗期）；④ 导出强化详情页四按钮：PDF（html2canvas→jsPDF A4 分页）+ Word（服务端 python-docx，w:eastAsia 中文字体）+ 图片（PNG scale2）+ 打印（clone 到 #printHost + @media print）；批量 Excel/CSV 保留，新增「提交人」列；⑤ 成员管理与数据隔离 candidates 加 created_by/shared（_migrate 自动 ALTER + 历史数据归第一个 admin） + users 加 status（disabled 禁登录）；可见=admin|owner|shared=1 / 可改=admin|owner；统计 API 按权限过滤。e2e 68 → 114 项全绿。", issue: "ALTER 老库时 _SCHEMA 的 CREATE INDEX 依赖新列会炸 → 新列索引移进 _migrate；playwright-cli 装不上（managed node 全局目录二进制 exec format error），前端无头浏览器验证仅靠 node --check 语法 + 服务端 e2e。", next: "playwright 装不上问题稍后再查，准备清理真实数据进入下一阶段迭代。" },
+  { ts: "09-05 10:00", pct: 85, content: "恢复被清库的两份真实简历（周颖 / 张鑫）+ UI 大改（侧栏收叠 + 居中 + 苹果级视觉）。昨日 v3.0 收尾执行「真实库清空只留 admin」未备份，现通过原 PDF 在 data/uploads/ + 真实链路重新解析：周颖 id=19（9/10 完整度）、张鑫 id=20（6/10）。教训入 MEMORY：清库前必须 cp resumes.db。UI 三改：① 折叠侧栏 220↔68 + localStorage 记忆 + 折叠时 nav 图标居中 + tooltip + 改密/退出变图标竖排；② page-top .top-inner max-width 1240 + sticky 顶栏 + 毛玻璃；③ 全 emoji 换线性 SVG + 渐变 brand-mark + 登录页光晕背景 + 按钮 32px hover/focus-ring + 表单卡 12 圆角阴影 + 表格 hover 淡蓝 + 弹窗动画。", issue: "npm registry 拉 agent-browser EBADSIZE 流校验失败，与 playwright-cli 同源问题 → 无头截图 UI 验收仍装不上。", next: "次日产出可分发的部署包（README_AGENT.md + zip/tar.gz），让其他服务器 / 其他 agent 能接手。" },
+  { ts: "09-06 10:30", pct: 88, content: "交接文档 + 部署包。产出 README_AGENT.md（根目录，agent 交接手册）：1 分钟定位 / 目录职责 / 24 个环境变量全表（config.py 实测提取）/ DB 三表 schema / 鉴权与隔离规则矩阵 / API 全表（含导出四通道分工）/ 7 条铁律 / 智谱 GLM 参数事实 / 测试命令 / 新服务器逐步部署命令 / 10 条已知坑排错表 / 前端速览 / 待办。打包 dist/hr-resume-tool_v3.0_deploy_20260906.zip + .tar.gz（28 文件 859KB/256KB）：排除 .env / data / .venv / .workbuddy / __pycache__；保留 .env.example / README / 技术说明 / 原型 html / tests samples / 启动脚本 / web vendor。测试复验：offline 29 / e2e 114 全绿。", issue: "data 目录未入包，若需迁移用户数据单独拷 data/；.env 需在服务器 cp .env.example 填写。", next: "次日交接给另一台机器测试部署可行性 + 确认无遗漏项。" },
+  { ts: "09-07 09:30", pct: 90, content: "接手 v3.0 第一优先动作：基线测试全绿（offline 29/29 + e2e 114/114，文档纠错后重跑仍全绿）。README_AGENT.md 与代码（config.py / db.py / providers.py）不一致 → 按「以代码为准」回写修正：① ZHIPU_BASE_URL 补全 …/v4/chat/completions；② TIMEOUT 120→300；③ RETRY_BASE_DELAY 2→3；④ PDF_RENDER_DPI 110→144；⑤ MAX_FILE_MB 25→50；⑥ OPENAI_MODEL → gpt-4o-mini；⑦ ⚠ 待 Sean 拍板：config.py THINKING 回退默认 disabled 与 §7 铁律 / .env / .env.example 都要求 enabled 的冲突；⑧ candidates 列数 15 → 16（实测）；⑨ Dockerfile COPY 已覆盖全部 7 个根 .py。", issue: "本机 docker 无 resume-tool 容器（curl 127.0.0.1:8765 返 502，疑似反代 / 非本 checkout 部署）；本 checkout 仅代码源，未在此启动服务。", next: "等 Sean 拍板 THINKING 默认值，决定后立刻重新部署。" },
+  { ts: "09-07 11:00", pct: 93, content: "THINKING 拍板 + Docker 重新部署。Sean 决定 config.py THINKING 回退默认 disabled → enabled，与 §7 铁律 / .env / .env.example 三方一致，杜绝 .env 漏配时静默以 disabled 运行；同时改 config.py 上方注释注明 2026-09-07 拍板依据，README_AGENT.md §2 THINKING 默认行 + 原 ⚠ 冲突改为 ✅「已拍板解决」。测试回归 offline 29/29 + e2e 114/114 全绿。docker-compose up -d --build 成功：容器 resume-tool Up，端口 0.0.0.0:8765→8765，127.0.0.1:8765 与 192.168.1.246:8765 均 HTTP 200，登录冒烟 {ok:true}；/app/data 挂载正常（resumes.db + uploads/），stats scope=all total=2，存量数据未丢。访问 http://192.168.1.246:8765/。", issue: "前一日 502 是反代/非本 checkout 部署，本 checkout 即代码源；今天重部署后两个入口均健康。", next: "进入 v3.1 归档人才库开发 + 三层角色权限设计。" },
+  { ts: "09-07 14:00", pct: 97, content: "v3.1 归档人才库 + 导航重排：① 模块顺序 候选人库（登录默认）→ 归档人才库（新增）→ 简历解析 → 成员管理；② 候选人库可归档 / 恢复（_migrate 加 archived INTEGER DEFAULT 0 + idx_cand_archived 放 _migrate 避免 _SCHEMA CREATE INDEX 误触）；③ 新增 POST /api/candidates/{cid}/archive 仅 owner/admin 可调；归档态保留共享语义（owner/admin 切换，admin 可见全部，共享后所有用户只读可见）；④ 详情页 + 列表归档/恢复按钮；导航 navArchCnt 角标 + 默认 hash #/pool；⑤ e2e 新增 9 项归档断言，总用例 114 → 123/123 全绿，offline 29/29；实测归档/恢复 round-trip + 跨用户越权 403，路由顺序与索引已实测。", issue: "Edit 精确匹配含 … 省略号和 ＋ 全角加号大块 HTML 多次失败，改用 Python io.open + index + 切片替换一次性脚本（patch_pool.py）；共享/归档复用同一数据隔离矩阵。", next: "进入 v3.2 三层角色（admin/manager/user）+ AI Key 落库。" },
+  { ts: "09-07 16:30", pct: 100, content: "v3.2 三层角色 + Key 落库。需求三条全落地：① 除 admin 外所有人看不到 Key，admin 前端可读 / 写；② 成员列表增角色选择（默认 user，admin/manager 可管 user，manager 看不到 admin 不能赋管理员）；③ 侧栏收起按钮移至模块上方。落地点：db.py 建 ai_keys 表 + first_admin_id helper；server.py 加 _manager_or_admin / _mask_key_str（prefix(6)+stars+suffix(4)）+ /api/config can_manage_key + DB 优先脱敏 + /api/admin/key GET/POST + 启动期 db.migrate_env_ai_keys 一次性从 .env 迁入不回写；providers.py 用延迟 import 读 db.get_ai_key；前端 🔑 Key 配置入口（admin only）+ isManager/isStaff/roleLabel + manager 创建硬塞 admin 角色→403。e2e 新增 §9c 23 项，总用例 123 → 146/146 全绿。", issue: "服务启动钩子调用 _mask_key_str 但定义在下方 NameError 被 try-except 吃掉 → helper 上移到 FastAPI() 紧邻位置；模块顶层若调用下方定义的 helper 必须上移到调用点之前；测试复用 hr2 跨段（升级→降级→自改密），降级后必须 hr2.post(/api/auth/login) 重登否则 §10 后续越权测试全 401。", next: "v3.3 候选：Key 加密落库（libsodium 或 OS keyring）；手册第 12 章待办：准确率批量验证 / 无头浏览器 UI 回归 / 共享升级「指定某人可见」。" }
+];
+
+// 倒序（最新在上）
+data.slice().reverse().forEach((it, idx) => {
+  const isArch = it.pct >= 100;
+  const el = document.createElement('div');
+  el.className = 'item' + (isArch ? ' archived' : '');
+  el.innerHTML = `
+    <div class="item-head">
+      <span class="ts">${it.ts}</span>
+      <span class="pct">${it.pct}%</span>
+      ${it.pct === 100 ? '<span class="badge badge-arch">已归档</span>' : ''}
+    </div>
+    <div class="content">${it.content}</div>
+    <div class="issue"><span class="issue-label">⚠ 卡点</span>${it.issue}</div>
+    <div class="next"><span class="next-label">→ 下一步</span>${it.next}</div>
+  `;
+  document.getElementById('timeline').appendChild(el);
+});
+</script>
+</body>
+</html>

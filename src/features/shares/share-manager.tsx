@@ -175,7 +175,7 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
             p.projectCode.toLowerCase().includes(keyword.toLowerCase()),
         );
 
-  const activeCount = projects.filter((p) => !['ARCHIVED', 'CANCELLED', 'MERGED'].includes(p.status)).length;
+  const archivedCount = projects.filter((p) => p.status === 'ARCHIVED').length;
 
   return (
     <div className="space-y-6">
@@ -399,10 +399,17 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
 
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <Label>选择要分享的项目（{selected.size} / {activeCount} 个进行中）</Label>
+                  <Label>选择要分享的项目（{selected.size} / {projects.length} 个）</Label>
                   <div className="flex gap-3 text-xs">
                     <button className="text-blue-700 hover:underline" onClick={() => setSelected(new Set(projects.filter((p) => !['ARCHIVED', 'CANCELLED', 'MERGED'].includes(p.status)).map((p) => p.id)))}>
                       全选进行中
+                    </button>
+                    <button
+                      className="text-blue-700 hover:underline disabled:cursor-not-allowed disabled:text-slate-300"
+                      disabled={archivedCount === 0}
+                      onClick={() => setSelected(new Set(projects.filter((p) => p.status === 'ARCHIVED').map((p) => p.id)))}
+                    >
+                      全选已归档
                     </button>
                     <button className="text-slate-500 hover:underline" onClick={() => setSelected(new Set())}>
                       清空
