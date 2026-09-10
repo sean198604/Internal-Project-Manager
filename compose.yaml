@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: internal-project-manager:local
+    container_name: ipm-app
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "3010:3010"
+    volumes:
+      - ./storage:/app/storage
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3010/api/health')
+          .then(async response => {
+            const body = await response.json();
+            if (!response.ok || body?.data?.database !== 'ok') process.exit(1);
+          })
+          .catch(() => process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

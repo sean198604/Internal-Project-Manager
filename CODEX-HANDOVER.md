@@ -1,6 +1,6 @@
 # Internal-Project-Manager（项目管理中心）· Codex 交接文档
 
-> 更新时间：2026-09-09 22:23（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
+> 更新时间：2026-09-10 17:16（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
 > 交接目的：完整进度 + 系统要点 + **未完成待办**，供 Codex 无缝接手。
 > 项目路径：`C:\Users\Administrator\Documents\Github\Internal-Project-Manager`
 > GitHub：`sean198604/Internal-Project-Manager`（**PRIVATE**，远端已建并 push）
@@ -16,12 +16,13 @@
 
 ---
 
-## 2. 当前运行状态（实测快照 2026-09-09）
+## 2. 当前运行状态（实测快照 2026-09-10）
 
 | 项目 | 状态 |
 |---|---|
-| 应用 Dev Server | ⏸️ 当前未启动；需要时运行 `npm run dev`，监听 `0.0.0.0:3010`（http://localhost:3010 或 http://192.168.1.246:3010） |
-| 数据库 | ✅ Docker 容器 `ipm-postgres`（postgres:16-alpine），host 端口 5432，库 `ipm` |
+| 应用服务 | ✅ Docker 容器 `ipm-app`，生产模式监听 `0.0.0.0:3010`（http://localhost:3010 或 http://192.168.1.246:3010），健康检查通过 |
+| 数据库 | ✅ Docker 容器 `ipm-postgres`（postgres:16-alpine），host 端口 5432，库 `ipm`，健康查询通过 |
+| 自动启动 | ✅ `ipm-app` 与 `ipm-postgres` 均为 `restart: unless-stopped`；Docker Desktop `AutoStart=True` |
 | 管理员账号 | `admin`（密码由管理员维护，不写入仓库；唯一账号；admin id `5af39e51-f110-423d-b6ea-83691229c423`） |
 | 类型检查 | `npx tsc --noEmit` 应为 0 错误（每次改完必跑） |
 | git | ✅ 已建仓，远端 private 的 `main` 已同步；Codex 接手基线提交 `3072b8b` |
@@ -29,7 +30,8 @@
 
 ### 环境铁律（实测结论，勿再改）
 - 应用端口 **3010**（3000 与 7000-7010 被 Docker Desktop 代理占用，不可用）
-- PostgreSQL **5432**，连接串见 `.env`：`postgresql://ipm:ipm_dev_only@localhost:5432/ipm`
+- PostgreSQL **5432**，连接串仅见本地 `.env`（gitignored，禁止写入文档或镜像）
+- 生产应用由 `compose.yaml` 管理；容器内通过 `host.docker.internal` 连接宿主机 PostgreSQL，上传目录 `storage/` 挂载持久化
 - 时区铁律：**数据库存 UTC，展示一律 Asia/Taipei**（`.env` `APP_TIMEZONE=Asia/Taipei`；前端用 `src/lib/time.ts`，禁止 getUTC* 直显）
 - FastGPT 已独立部署 `192.168.1.246:3000`，**不入库、不 iframe、不重新部署**；AI 相关（P2）表一律未创建
 - `wsl.exe` 被安全策略拦截，不可调用
@@ -37,7 +39,11 @@
 
 ### 常用命令
 ```bash
-npm run dev            # next dev -p 3010（开发）
+docker compose up -d --build app   # 构建并启动生产应用
+docker compose ps                 # 查看容器与健康状态
+docker logs --tail 100 ipm-app    # 查看应用日志
+docker compose restart app        # 重启应用
+npm run dev                       # 仅本地开发；须先 docker compose stop app 释放 3010
 npx tsc --noEmit       # 类型检查（必须 0 错误）
 npm run db:migrate     # prisma migrate dev（改 schema 后）
 npm run db:seed        # node --env-file=.env --import tsx prisma/seed.ts
@@ -45,7 +51,7 @@ docker exec ipm-postgres psql -U ipm -d ipm -c "<SQL>"          # 直查 DB
 cat x.sql | docker exec -i ipm-postgres psql -U ipm -d ipm      # 批量 SQL 唯一可靠通道（见 §11）
 ```
 
-> ⚠️ **改 schema 前必须停 dev server**（query_engine DLL 被占 → prisma generate 报 EPERM）。重启 dev 前**必须清 .next**：`python -c "import shutil;shutil.rmtree(r'...\.next',ignore_errors=True)"`（勿用 shell rm 批量删，WorkBuddy safe-delete 会拦）。重启后首查偶发 Prisma 连不上，重试即过。
+> ⚠️ **改 schema 前先执行 `docker compose stop app`**；若同时运行本地 dev server，也必须停止（query_engine DLL 被占 → prisma generate 报 EPERM）。重启本地 dev 前必须清 `.next`：`python -c "import shutil;shutil.rmtree(r'...\.next',ignore_errors=True)"`。完成迁移后用 `docker compose up -d --build app` 重建生产应用。
 
 ---
 
@@ -65,6 +71,7 @@ cat x.sql | docker exec -i ipm-postgres psql -U ipm -d ipm      # 批量 SQL 唯
 - **状态机体验修复**：点「已完成」无效 → 新增 `status-flow.ts`（BFS 找路径逐跳 PATCH）+ 详情页绿色「✓ 标记已完成」直达按钮；编辑器加宽 1152px + 生命周期/状态/进度/优先级高亮载体
 - **09-09 前端 3 项**：侧栏 sticky 固定视口（用户区常驻底部不再被长内容顶走）；分享弹窗加「全选已归档」（后修 bug 为替换语义）
 - **进度更新回填机制（新能力，用户重点要求）**：从各项目 `.workbuddy/memory/*.md` 提炼迭代节点；无记忆目录时以 Git、Docker 元数据和项目文档交叉验证。双写 `ProjectUpdate`（进度/内容/卡点/下一步）+ `ProjectTimelineEvent(UPDATE_ADDED)`。已回填 **8 个项目共 66 条**（见 §4）
+- **09-10 生产容器化**：新增 `ipm-app` Docker 服务、健康检查、上传目录持久化和自动重启；数据库容器同步设置 `unless-stopped`，3010 局域网访问实测恢复
 
 ### ⏳ 未完成（Codex 接手待办，详见 §8）
 1. **进度更新回填剩余 15 个项目**（每批 2 个，用户原话「不求快，2个2个来，真实准确完整」）
@@ -111,6 +118,9 @@ FUNCTION 职能类：HR 人力 / ADMIN_OFFICE 行政 / BIZ_MGMT 业务管理 / F
 ## 5. 目录地图（关键文件 + 职责，★=09-08/09 新增）
 
 ```
+Dockerfile / compose.yaml          # ★ 生产应用镜像与 ipm-app 服务（3010、健康检查、自动重启）
+docker-entrypoint.sh               # ★ 容器入口；将本地 DATABASE_URL 主机名转换为 Docker Desktop 网关
+.dockerignore / .gitattributes     # ★ 排除密钥/运行数据并固定入口脚本 LF 换行
 app/(workspace)/layout.tsx          # 工作区壳：Sidebar + Topbar + main
 app/(workspace)/{dashboard,projects,archive,settings,shares}/
 app/share/[token]/page.tsx          # 公开分享页（免登录）
@@ -238,9 +248,15 @@ storage/documents/       # 上传文件落盘（gitignored）
 
 ---
 
-## 10. 近期变更明细（按天，09-06 → 09-09）
+## 10. 近期变更明细（按天，09-06 → 09-10）
 
-### 09-09（今日）
+### 09-10（今日）
+1. **恢复 3010 服务**：确认宕机根因是手工运行的 Next.js 进程不存在，PostgreSQL 与项目数据始终正常
+2. **应用生产容器化**：新增 Node 20 Alpine 多阶段 `Dockerfile`、`compose.yaml`、安全构建忽略规则和容器入口脚本；生产构建完整通过
+3. **自启动与持久化**：`ipm-app` / `ipm-postgres` 均设置 `restart: unless-stopped`，Docker Desktop 已启用 AutoStart；`storage/` 绑定挂载，上传文件不随容器重建丢失
+4. **运行验证**：`ipm-app` 状态 healthy，`/api/health` 返回 app/database 均为 ok，`http://192.168.1.246:3010/login` 返回 200；受控重启后再次健康
+
+### 09-09
 1. **进度更新回填机制落地并回填 5 批**：试点 0023 HR(11 条) → 0010 文化积分(11) + 0011 众瀚四季(10) → 0001 装箱计算器(14) + 0002 Doc-Slim(6) → 0017 FastGPT(7) + 0021 NewsNow(6)。累计 8 个项目 66 条；每批读取项目记忆或用 Git/Docker/项目文档交叉验证，双写 ProjectUpdate+ProjectTimelineEvent，lastUpdateAt 同步
 2. **前端 3 项修改**：① sidebar.tsx aside 加 `md:sticky md:top-0 md:h-screen` → 侧栏固定不随内容滚、用户区（Admin/系统管理员/改密/退出）常驻底部；② 分享弹窗加「全选已归档」按钮；③ 修复全选已归档累积逻辑 bug → 替换语义
 3. **六项任务（前日启动今日收尾）**：见 §3；含部门两级分类、星级、改密 API
@@ -269,6 +285,9 @@ storage/documents/       # 上传文件落盘（gitignored）
 - **时区验证**：`ProjectUpdate.createdAt` 等是 PG 无时区 timestamp（存 UTC 墙钟）→ 验证用 `to_char(createdAt + INTERVAL '8 hours','YYYY-MM-DD HH24:MI')`
 - **prisma generate EPERM**：先停 dev server 再 generate，完毕再启
 - **Next dev 启动**：先 Python 递归清 .next（safe-delete 拦 shell rm 批量删）
+- **生产服务启动**：优先使用 `docker compose up -d app`；容器已配置自动重启，不要再依赖长期挂着的 `npm run dev` 终端
+- **Docker 构建基础镜像**：当前使用本机已有 `node:20-alpine`；Docker Hub 鉴权偶发超时，除非必要不要切换到未缓存的新标签
+- **数据库容器归属**：`ipm-postgres` 是既有独立容器，不在 `compose.yaml` 内；应用入口会把 `.env` 中的本地主机地址转换为 `host.docker.internal`
 - **docker inspect 直查**：容器名按 deployment.serviceName 匹配，中文/特殊名用端口兜底
 - **列表分页**：默认 pageSize=20，批量处理全量用 pageSize=100
 - **编号验证**：先排除软删（deletedAt 非空）记录（0004 曾误导「0004=Prompt Hub」）
@@ -285,7 +304,7 @@ storage/documents/       # 上传文件落盘（gitignored）
 | `.workbuddy/memory/2026-09-06~09.md` | 每日工作日志（架构/P0/入库/六项任务/回填批次全记录） |
 | `.workbuddy/memory/MEMORY.md` | 长期记忆（铁律精炼版，与本文 §7 互为印证） |
 | `public/artifacts/hr-system-progress-timeline.html` | HR 进度时间轴可视化（演示产物） |
-| `CODEX-HANDOVER.md`（本文件） | ⚠️ 上版在 git 3e2d751 中，本版为 09-09 最新 |
+| `CODEX-HANDOVER.md`（本文件） | ⚠️ 上版在 git 3e2d751 中，本版为 09-10 最新 |
 
 ---
 
