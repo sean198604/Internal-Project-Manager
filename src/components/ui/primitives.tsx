@@ -37,7 +37,7 @@ export function Badge({
   return (
     <span
       className={[
-        'inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset',
         TONE[tone],
         className,
       ].join(' ')}
@@ -55,7 +55,7 @@ export function Card({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={['rounded-lg border border-slate-200 bg-white shadow-sm', className].join(' ')}
+      className={['rounded-xl border border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.035)]', className].join(' ')}
       {...rest}
     >
       {children}
@@ -77,12 +77,12 @@ export function CardHeader({
   return (
     <div
       className={[
-        'flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-200',
+        'flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-5',
         className,
       ].join(' ')}
     >
       <div className="min-w-0">
-        <div className="text-sm font-semibold text-slate-900">{title}</div>
+        <div className="text-[15px] font-bold text-slate-900">{title}</div>
         {description && <div className="mt-0.5 text-xs text-slate-500">{description}</div>}
       </div>
       {actions && <div className="shrink-0 flex items-center gap-2">{actions}</div>}
@@ -97,7 +97,7 @@ export function CardBody({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={['p-5', className].join(' ')}>{children}</div>;
+  return <div className={['p-4 sm:p-5', className].join(' ')}>{children}</div>;
 }
 
 export function EmptyState({
@@ -140,9 +140,10 @@ export function StatCard({
     blue: 'text-blue-700',
   };
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <div className="text-xs font-medium text-slate-500">{label}</div>
-      <div className={['mt-2 text-2xl font-semibold tabular-nums', valueColor[tone]].join(' ')}>
+    <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.035)] sm:p-5">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#1a365d]/80 via-blue-400/60 to-transparent" />
+      <div className="text-[12px] font-semibold text-slate-500">{label}</div>
+      <div className={['mt-2 text-2xl font-extrabold tracking-tight tabular-nums sm:text-3xl', valueColor[tone]].join(' ')}>
         {value}
       </div>
       {hint && <div className="mt-1 text-[11px] text-slate-400">{hint}</div>}

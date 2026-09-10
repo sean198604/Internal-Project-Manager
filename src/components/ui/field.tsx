@@ -6,8 +6,8 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       <input
         ref={ref}
         className={[
-          'w-full h-9 px-3 text-sm rounded-md border border-slate-300 bg-white placeholder:text-slate-400',
-          'focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900',
+          'w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white placeholder:text-slate-400',
+          'focus:outline-none focus:ring-2 focus:ring-[#1a365d]/15 focus:border-[#1a365d]',
           'disabled:bg-slate-50 disabled:text-slate-400',
           className,
         ].join(' ')}
@@ -25,8 +25,8 @@ export const Textarea = React.forwardRef<
     <textarea
       ref={ref}
       className={[
-        'w-full px-3 py-2 text-sm rounded-md border border-slate-300 bg-white placeholder:text-slate-400',
-        'focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900',
+        'w-full px-3 py-2.5 text-sm rounded-lg border border-slate-300 bg-white placeholder:text-slate-400',
+        'focus:outline-none focus:ring-2 focus:ring-[#1a365d]/15 focus:border-[#1a365d]',
         'disabled:bg-slate-50 disabled:text-slate-400',
         className,
       ].join(' ')}
@@ -43,8 +43,8 @@ export const Select = React.forwardRef<
     <select
       ref={ref}
       className={[
-        'w-full h-9 px-3 text-sm rounded-md border border-slate-300 bg-white',
-        'focus:outline-none focus:ring-2 focus:ring-slate-900/15 focus:border-slate-900',
+        'w-full h-10 px-3 text-sm rounded-lg border border-slate-300 bg-white',
+        'focus:outline-none focus:ring-2 focus:ring-[#1a365d]/15 focus:border-[#1a365d]',
         'disabled:bg-slate-50 disabled:text-slate-400',
         className,
       ].join(' ')}
@@ -59,7 +59,7 @@ export function Label(props: React.LabelHTMLAttributes<HTMLLabelElement>) {
   const { className = '', ...rest } = props;
   return (
     <label
-      className={['text-xs font-medium text-slate-600 select-none', className].join(' ')}
+      className={['text-[13px] font-semibold text-slate-600 select-none', className].join(' ')}
       {...rest}
     />
   );

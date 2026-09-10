@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 import { ChangePasswordDialog } from './change-password-dialog';
 
-type NavItem = {
+export type NavItem = {
   href: string;
   label: string;
   icon: ReactNode;
@@ -26,7 +26,7 @@ type NavItem = {
   count?: string;
 };
 
-const NAV_MAIN: NavItem[] = [
+export const NAV_MAIN: NavItem[] = [
   {
     href: '/dashboard',
     label: '工作台',
@@ -53,7 +53,7 @@ const NAV_MAIN: NavItem[] = [
   },
 ];
 
-const NAV_SETTINGS: NavItem[] = [
+export const NAV_SETTINGS: NavItem[] = [
   {
     href: '/settings/users',
     label: '用户',
@@ -74,7 +74,7 @@ const NAV_SETTINGS: NavItem[] = [
   },
 ];
 
-const ROLE_LABEL: Record<Role, string> = {
+export const ROLE_LABEL: Record<Role, string> = {
   ADMIN: '系统管理员',
   MASTER: '主管',
   USER: '用户',
@@ -117,7 +117,7 @@ export function Sidebar({ role, displayName }: { role: Role; displayName: string
         href={item.href}
         title={collapsed ? item.label : undefined}
         className={cn(
-          'group relative flex items-center gap-2.5 rounded-md text-[13.5px] font-semibold transition-colors',
+          'group relative flex items-center gap-2.5 rounded-lg text-[13px] font-semibold transition-colors',
           collapsed ? 'justify-center px-0 py-2.5 mx-1 mb-0.5' : 'px-3 py-2 mb-0.5',
           active
             ? 'bg-[#dbeafe] text-[#1a365d]'
@@ -141,7 +141,7 @@ export function Sidebar({ role, displayName }: { role: Role; displayName: string
     <aside
       data-collapsed={collapsed ? '1' : '0'}
       className={cn(
-        'hidden shrink-0 flex-col bg-white border-r border-slate-200 transition-[width] duration-200 ease-out md:sticky md:top-0 md:h-screen md:flex',
+        'hidden shrink-0 flex-col bg-white/95 border-r border-slate-200/90 shadow-[4px_0_24px_rgba(15,23,42,0.025)] backdrop-blur-xl transition-[width] duration-200 ease-out md:sticky md:top-0 md:h-screen md:flex',
         collapsed ? 'w-[68px]' : 'w-[224px]',
       )}
     >

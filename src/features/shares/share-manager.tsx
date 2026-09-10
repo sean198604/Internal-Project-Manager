@@ -346,7 +346,7 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
               <p className="mt-1 text-xs text-emerald-700">
                 把下面链接发给对方，对方无需登录，打开即可查看这 {createdCount} 个项目。
               </p>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <code className="flex-1 truncate rounded bg-white px-2 py-1.5 text-xs ring-1 ring-emerald-200">
                   {window.location.origin + createdUrl}
                 </code>
@@ -398,7 +398,7 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
               </div>
 
               <div>
-                <div className="mb-1.5 flex items-center justify-between">
+                <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <Label>选择要分享的项目（{selected.size} / {projects.length} 个）</Label>
                   <div className="flex gap-3 text-xs">
                     <button className="text-blue-700 hover:underline" onClick={() => setSelected(new Set(projects.filter((p) => !['ARCHIVED', 'CANCELLED', 'MERGED'].includes(p.status)).map((p) => p.id)))}>
@@ -431,7 +431,7 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
                       return (
                         <label
                           key={p.id}
-                          className={`flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 text-sm transition-colors ${
+                          className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors sm:gap-3 ${
                             checked ? 'bg-blue-50' : 'hover:bg-slate-50'
                           }`}
                         >
@@ -443,7 +443,7 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
                           />
                           <span className="font-mono text-xs text-slate-400">{p.projectCode}</span>
                           <span className="flex-1 truncate text-slate-900">{p.name}</span>
-                          {p.department && <span className="text-xs text-slate-400">{p.department.name}</span>}
+                          {p.department && <span className="hidden text-xs text-slate-400 sm:inline">{p.department.name}</span>}
                           <StatusBadge status={p.status} />
                         </label>
                       );

@@ -59,7 +59,7 @@ export function LoginForm() {
           autoFocus
           required
           placeholder="请输入用户名"
-          className="w-full rounded-lg border border-slate-200 bg-[#fcfdff] px-3 py-2.5 text-[14px] outline-none transition focus:border-[#1a365d] focus:bg-white focus:shadow-[0_0_0_3px_rgba(26,54,93,0.10)]"
+          className="h-11 w-full rounded-lg border border-slate-200 bg-[#fcfdff] px-3 text-[14px] outline-none transition focus:border-[#1a365d] focus:bg-white focus:shadow-[0_0_0_3px_rgba(26,54,93,0.10)]"
         />
       </div>
 
@@ -78,7 +78,7 @@ export function LoginForm() {
           autoComplete="current-password"
           required
           placeholder="请输入密码"
-          className="w-full rounded-lg border border-slate-200 bg-[#fcfdff] px-3 py-2.5 text-[14px] outline-none transition focus:border-[#1a365d] focus:bg-white focus:shadow-[0_0_0_3px_rgba(26,54,93,0.10)]"
+          className="h-11 w-full rounded-lg border border-slate-200 bg-[#fcfdff] px-3 text-[14px] outline-none transition focus:border-[#1a365d] focus:bg-white focus:shadow-[0_0_0_3px_rgba(26,54,93,0.10)]"
         />
       </div>
 
@@ -91,7 +91,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="flex h-[42px] w-full items-center justify-center gap-2 rounded-lg bg-[#1a365d] text-[14px] font-bold text-white shadow-[0_2px_6px_rgba(26,54,93,0.3)] transition hover:bg-[#16345f] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1a365d] text-[14px] font-bold text-white shadow-[0_2px_6px_rgba(26,54,93,0.3)] transition hover:bg-[#16345f] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
       >
         {loading ? (
           <>

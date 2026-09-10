@@ -182,18 +182,18 @@ export function ProjectDetailView({
   const perm = project.permissions ?? {};
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 sm:space-y-6">
       {/* 顶部摘要 */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs text-muted">
+          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <span className="font-mono">{project.projectCode}</span>
             <ChevronRight size={12} />
             <span>{project.department?.name}</span>
             <ChevronRight size={12} />
             <span>{project.projectType?.name}</span>
           </div>
-          <h1 className="mt-1 text-2xl font-semibold text-fg">{project.name}</h1>
+          <h1 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{project.name}</h1>
           {project.systemName && <div className="text-sm text-muted">系统名：{project.systemName}</div>}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <StatusBadge status={project.status} />
@@ -225,7 +225,7 @@ export function ProjectDetailView({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 max-sm:[&>button]:flex-1">
           {isPrivileged &&
             perm.canEdit &&
             project.status !== 'COMPLETED' &&
@@ -269,7 +269,7 @@ export function ProjectDetailView({
       )}
 
       {/* 关键统计 */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <QuickStat label="进度" value={`${project.progress}%`} />
         <QuickStat label="状态" value={<StatusBadge status={project.status} />} />
         <QuickStat label="开始" value={project.startDate ?? '—'} />
@@ -359,9 +359,9 @@ export function ProjectDetailView({
 
 function QuickStat({ label, value, highlight, muted }: { label: string; value: React.ReactNode; highlight?: boolean; muted?: boolean }) {
   return (
-    <div className={['rounded-lg border p-3', highlight ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white'].join(' ')}>
+    <div className={['rounded-xl border p-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]', highlight ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white'].join(' ')}>
       <div className="text-[11px] uppercase tracking-wider text-muted">{label}</div>
-      <div className={['mt-1 text-base font-semibold tabular-nums', muted ? 'text-slate-400' : 'text-fg'].join(' ')}>{value}</div>
+      <div className={['mt-1 text-[15px] font-bold tabular-nums sm:text-base', muted ? 'text-slate-400' : 'text-fg'].join(' ')}>{value}</div>
     </div>
   );
 }
@@ -552,7 +552,7 @@ function UpdatesPanel({
             <Label className="block mb-1">更新内容 *</Label>
             <Textarea rows={4} value={content} onChange={(e) => setContent(e.target.value)} placeholder="完成 xxx。下一步 xxx…" />
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label className="block mb-1">进度（%）</Label>
               <Input type="number" min={0} max={100} value={progress} onChange={(e) => setProgress(e.target.value as never)} placeholder="0-100" />
@@ -566,7 +566,7 @@ function UpdatesPanel({
               <Input value={next} onChange={(e) => setNext(e.target.value)} />
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end max-sm:[&>button]:w-full">
             <Button onClick={submit} loading={saving} disabled={!canWrite && false}>
               提交更新
             </Button>

@@ -97,7 +97,7 @@ export default async function ArchivePage({
         <div className="text-[11px] font-bold uppercase tracking-[1.2px] text-slate-400">
           Archive · 资产
         </div>
-        <h1 className="mt-0.5 text-[22px] font-extrabold tracking-tight text-slate-900">
+        <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-[24px]">
           历史项目 / 软件资产
         </h1>
         <p className="mt-1 text-[12.5px] text-slate-500 max-w-[820px]">
@@ -168,7 +168,7 @@ export default async function ArchivePage({
           title="最近归档"
           description={`${archived.length} 项 · 默认按归档时间倒序 · 归档时间 = docker 最后部署启动时间`}
           actions={
-            <div className="flex items-center gap-2 text-[12px] text-slate-600">
+            <div className="flex max-w-[55vw] items-center gap-1 overflow-x-auto text-[12px] text-slate-600 sm:max-w-none sm:gap-2">
               <span className="text-slate-500">排序：</span>
               <SortLink sort="archivedAt" currentSort={sort} order={order} label="归档时间" />
               <SortLink sort="port" currentSort={sort} order={order} label="部署端口" />

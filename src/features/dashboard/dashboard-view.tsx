@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { ChevronRight, Plus, AlertTriangle, Clock, FileArchive, Activity, PauseCircle } from 'lucide-react';
+import { Plus, AlertTriangle, Clock, PauseCircle } from 'lucide-react';
 import type { Role } from '@prisma/client';
 import { Card, CardHeader, StatCard, Badge } from '@/components/ui/primitives';
 import { Table, Th, Td } from '@/components/ui/table';
@@ -51,19 +51,19 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Overview</div>
-          <h1 className="text-xl font-semibold text-fg">Dashboard</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Overview</div>
+          <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">项目总览</h1>
           <p className="mt-1 text-sm text-muted">{isPrivileged ? '可查看全部项目数据' : '可查看本部门项目数据'}</p>
         </div>
-        <Link href="/projects/new" className="btn-primary h-9 px-4 inline-flex items-center gap-1.5 text-sm">
+        <Link href="/projects/new" className="btn-primary inline-flex h-11 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
           <Plus size={15} /> 新建项目
         </Link>
       </div>
 
       {/* 关键指标 */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard label="项目总数" value={totals.total} hint="含活跃与归档" />
         <StatCard label="进行中" value={totals.inProgress} tone="blue" />
         <StatCard label="待验收" value={totals.waiting} tone="amber" />
@@ -74,11 +74,11 @@ export function DashboardView({
         <StatCard label="近 30 天归档" value={totals.archivedRecent} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         {/* 状态分布 */}
         <Card>
           <CardHeader title="项目状态分布" description={`共 ${totalActive} 个有效项目`} />
-          <div className="p-5 space-y-2.5">
+          <div className="space-y-3 p-4 sm:p-5">
             {Object.entries(distributions.status).length === 0 ? (
               <div className="text-sm text-muted">暂无数据</div>
             ) : (
@@ -93,7 +93,7 @@ export function DashboardView({
                       </div>
                       <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
                         <div
-                          className="h-full bg-slate-900"
+                          className="h-full rounded-full bg-gradient-to-r from-[#1a365d] to-blue-500"
                           style={{ width: `${pct}%` }}
                           aria-hidden="true"
                         />
@@ -111,9 +111,9 @@ export function DashboardView({
         {/* 优先级分布 */}
         <Card>
           <CardHeader title="优先级分布" />
-          <div className="p-5 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 p-4 sm:p-5">
             {(['P0', 'P1', 'P2', 'P3'] as const).map((p) => (
-              <div key={p} className="rounded-md border border-slate-200 p-3">
+              <div key={p} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3">
                 <div className="flex items-center justify-between">
                   <PriorityBadge priority={p} />
                   <div className="text-xl font-semibold tabular-nums">{distributions.priority[p]}</div>
@@ -126,12 +126,12 @@ export function DashboardView({
         {/* 部门分布 */}
         <Card>
           <CardHeader title="部门分布" />
-          <div className="p-5 space-y-2">
+          <div className="space-y-2 p-4 sm:p-5">
             {distributions.department.length === 0 ? (
               <div className="text-sm text-muted">暂无数据</div>
             ) : (
               distributions.department.map((d) => (
-                <div key={d.name} className="flex items-center justify-between">
+                <div key={d.name} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-slate-50">
                   <span className="text-sm text-fg">{d.name}</span>
                   <span className="text-sm tabular-nums text-muted">{d.count}</span>
                 </div>
@@ -142,7 +142,7 @@ export function DashboardView({
       </div>
 
       {/* 重点项目列表 */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         <FocusList
           title="已逾期"
           icon={<AlertTriangle size={14} className="text-red-600" />}
@@ -188,7 +188,7 @@ function FocusList({
       {rows.length === 0 ? (
         <div className="p-6 text-sm text-muted text-center">{emptyText}</div>
       ) : (
-        <Table>
+        <Table className="rounded-none border-0 shadow-none">
           <thead>
             <tr>
               <Th>编号 / 名称</Th>

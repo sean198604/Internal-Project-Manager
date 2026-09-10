@@ -20,7 +20,7 @@ function isViewKey(v: string | null | undefined): v is ViewKey {
   return v === 'active' || v === 'archive' || v === 'all';
 }
 function isSortKey(v: string | null | undefined): v is SortKey {
-  return v === 'updatedAt' || v === 'lastUpdateAt' || v === 'dueDate' || v === 'createdAt' || v === 'priority' || v === 'projectCode';
+  return v === 'updatedAt' || v === 'lastUpdateAt' || v === 'dueDate' || v === 'createdAt' || v === 'priority' || v === 'projectCode' || v === 'port';
 }
 
 type Item = {
@@ -73,6 +73,10 @@ export function ProjectsListView({
 
   const [data, setData] = useState<{ items: Item[]; total: number; totalPages: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const activeFilterCount = [q, departmentId, projectTypeId, ownerId, priority, status, healthStatus]
+    .filter(Boolean).length;
 
   useEffect(() => {
     const sp = new URLSearchParams();
@@ -138,19 +142,20 @@ export function ProjectsListView({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-end justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Projects</div>
-          <h1 className="text-xl font-semibold text-fg">项目列表</h1>
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Projects</div>
+          <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">项目列表</h1>
+          <p className="mt-1 hidden text-sm text-slate-500 sm:block">集中检索、跟踪和维护全部项目</p>
         </div>
-        <Link href="/projects/new" className="btn-primary h-9 px-4 inline-flex items-center gap-1.5 text-sm">
+        <Link href="/projects/new" className="btn-primary inline-flex h-11 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
           <Plus size={15} /> 新建项目
         </Link>
       </div>
 
       {/* 视图切换 */}
-      <div className="flex items-center gap-1 border-b border-line text-sm">
+      <div className="flex items-center gap-1 overflow-x-auto border-b border-line text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {(['active', 'archive', 'all'] as const).map((v) => (
           <button
             key={v}
@@ -159,7 +164,7 @@ export function ProjectsListView({
               setPage(1);
             }}
             className={
-              'px-3 py-2 border-b-2 -mb-px ' +
+              'min-h-11 whitespace-nowrap px-3 py-2 border-b-2 -mb-px ' +
               (view === v
                 ? 'border-slate-900 text-fg font-medium'
                 : 'border-transparent text-muted hover:text-fg')
@@ -171,8 +176,21 @@ export function ProjectsListView({
       </div>
 
       {/* 过滤器 */}
-      <Card>
-        <div className="p-4 grid gap-3 lg:grid-cols-8">
+      <div className="md:hidden">
+        <Button
+          variant="secondary"
+          className="w-full justify-between"
+          onClick={() => setMobileFiltersOpen((open) => !open)}
+        >
+          <span className="flex items-center gap-2">
+            <Filter size={16} /> 筛选条件
+            {activeFilterCount > 0 && <Badge tone="blue">{activeFilterCount}</Badge>}
+          </span>
+          {mobileFiltersOpen ? <X size={16} /> : <ChevronRight size={16} />}
+        </Button>
+      </div>
+      <Card className={mobileFiltersOpen ? 'block' : 'hidden md:block'}>
+        <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-8">
           <div className="lg:col-span-2 relative">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
             <Input
@@ -215,7 +233,7 @@ export function ProjectsListView({
             <option value="P2">P2</option>
             <option value="P3">P3</option>
           </Select>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
             <Select value={healthStatus} onChange={(e) => { setHealthStatus(e.target.value); setPage(1); }}>
               <option value="">全部健康</option>
               <option value="NORMAL">正常</option>
@@ -223,7 +241,7 @@ export function ProjectsListView({
               <option value="DELAYED">延期</option>
               <option value="ON_HOLD">暂停</option>
             </Select>
-            <Button variant="ghost" size="sm" onClick={reset}>
+            <Button variant="ghost" size="sm" onClick={reset} className="shrink-0">
               <RotateCcw size={14} /> 重置
             </Button>
           </div>
@@ -231,14 +249,14 @@ export function ProjectsListView({
       </Card>
 
       {/* 排序 + 计数 */}
-      <div className="flex items-center justify-between text-xs text-muted">
-        <span>共 {data?.total ?? 0} 个项目</span>
-        <div className="flex items-center gap-2">
-          <span>排序：</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
+        <span className="font-medium">{loading ? '正在加载…' : `共 ${data?.total ?? 0} 个项目`}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="hidden sm:inline">排序：</span>
           <Select
             value={sort}
             onChange={(e) => setSort(e.target.value as never)}
-            className="h-7 text-xs w-auto inline-block"
+            className="h-9 w-auto min-w-[112px] text-xs"
           >
             <option value="updatedAt">最近更新</option>
             <option value="lastUpdateAt">最近进度更新</option>
@@ -248,7 +266,7 @@ export function ProjectsListView({
             <option value="projectCode">编号</option>
             <option value="port">部署端口</option>
           </Select>
-          <Button variant="ghost" size="sm" onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}>
+          <Button variant="ghost" size="sm" className="w-11 px-0" aria-label="切换排序方向" onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}>
             {order === 'asc' ? '↑' : '↓'}
           </Button>
         </div>
@@ -270,7 +288,67 @@ export function ProjectsListView({
           />
         </Card>
       ) : (
-        <Table>
+        <>
+        <div className="space-y-3 md:hidden">
+          {data.items.map((r) => (
+            <Link
+              key={r.id}
+              href={`/projects/${r.id}`}
+              className="block rounded-xl border border-slate-200/90 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.035)] transition active:scale-[.995]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-[11px] font-semibold text-slate-400">{r.projectCode}</span>
+                    <PriorityBadge priority={r.priority} />
+                  </div>
+                  <h2 className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-5 text-slate-900">{r.name}</h2>
+                </div>
+                <ChevronRight size={18} className="mt-1 shrink-0 text-slate-300" />
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                <StatusBadge status={r.status as never} />
+                {r.derived.isOverdue && <Badge tone="red">逾期 {r.derived.overdueDays}天</Badge>}
+                {r.derived.isDueSoon && <Badge tone="amber">7天内到期</Badge>}
+                {r.derived.isStale && <Badge tone="amber">长期未更新</Badge>}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                <div>
+                  <div className="text-slate-400">部门 / 类型</div>
+                  <div className="mt-0.5 truncate font-medium text-slate-700">
+                    {r.department?.name ?? '—'} · {r.projectType?.name ?? '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-slate-400">负责人</div>
+                  <div className="mt-0.5 truncate font-medium text-slate-700">{r.owner?.displayName ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-slate-400">星级</div>
+                  <div className="mt-1"><StarRating value={r.rating} /></div>
+                </div>
+                <div>
+                  <div className="text-slate-400">预计完成</div>
+                  <div className="mt-0.5 font-medium tabular-nums text-slate-700">{r.dueDate ?? '—'}</div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">项目进度</span>
+                  <span className="font-bold tabular-nums text-[#1a365d]">{r.progress}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#1a365d] to-blue-500" style={{ width: `${r.progress}%` }} />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <Table className="hidden md:block">
           <thead>
             <tr>
               <Th>编号 / 名称</Th>
@@ -309,7 +387,7 @@ export function ProjectsListView({
                   <div className="flex items-center gap-2 justify-end">
                     <span className="text-xs tabular-nums text-muted w-6">{r.progress}%</span>
                     <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-900" style={{ width: `${r.progress}%` }} />
+                      <div className="h-full bg-gradient-to-r from-[#1a365d] to-blue-500" style={{ width: `${r.progress}%` }} />
                     </div>
                   </div>
                 </Td>
@@ -319,6 +397,7 @@ export function ProjectsListView({
             ))}
           </tbody>
         </Table>
+        </>
       )}
 
       {/* 分页 */}

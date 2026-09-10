@@ -43,7 +43,7 @@ export function Tabs({
   return (
     <TabContext.Provider value={{ active, setActive }}>
       <div className={cn('flex flex-col min-h-0', className)}>
-        <div className="border-b border-slate-200 px-1 overflow-x-auto">
+        <div className="overflow-x-auto border-b border-slate-200 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div role="tablist" className="flex gap-1">
             {items.map((it) => {
               const isActive = it.key === active;
@@ -54,9 +54,9 @@ export function Tabs({
                   aria-selected={isActive}
                   onClick={() => setActive(it.key)}
                   className={cn(
-                    'px-3 py-2 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap flex items-center gap-2',
+                    'flex min-h-11 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition -mb-px',
                     isActive
-                      ? 'border-slate-900 text-slate-900'
+                      ? 'border-[#1a365d] text-[#1a365d]'
                       : 'border-transparent text-slate-500 hover:text-slate-800',
                   )}
                 >

@@ -299,10 +299,10 @@ export function ProjectEditor({
   const currentInLifecycle = lifecycleIdx >= 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted">Projects</div>
-        <h1 className="text-xl font-semibold text-fg">
+        <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Projects</div>
+        <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
           {mode === 'create' ? '新建项目' : `编辑：${initialValue?.projectCode ?? ''}`}
         </h1>
         <p className="mt-1 text-sm text-muted">
@@ -315,7 +315,7 @@ export function ProjectEditor({
       {error && <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm">{error}</div>}
 
       {/* ────────── 关键状态 / 优先级 / 进度（高亮区） ────────── */}
-      <div className="rounded-xl border border-[#1a365d]/25 bg-gradient-to-br from-[#f8fafc] via-white to-[#eef4fb] p-5 shadow-sm">
+      <div className="rounded-xl border border-[#1a365d]/25 bg-gradient-to-br from-[#f8fafc] via-white to-[#eef4fb] p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#1a365d]" />
@@ -353,8 +353,8 @@ export function ProjectEditor({
                               : `保存后流转到「${STATUS_LABEL[s]}」`
                         }
                         onClick={() => pickStatus(s)}
-                        className={
-                          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition-colors ' +
+                      className={
+                          'inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition-colors ' +
                           (active && s !== curStatus
                             ? 'border-[#1a365d] bg-[#1a365d] text-white shadow-sm'
                             : isCurrent
@@ -685,7 +685,7 @@ export function ProjectEditor({
         </CardBody>
       </Card>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2 max-sm:[&>button]:flex-1">
         {mode === 'edit' && !isPrivilegedActor && (
           <span className="mr-auto self-center text-[11px] text-slate-400">关键字段由系统管理员维护，你只能修改描述类内容</span>
         )}

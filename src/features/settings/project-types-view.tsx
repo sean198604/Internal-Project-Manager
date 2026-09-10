@@ -204,7 +204,7 @@ export function ProjectTypesView() {
         }
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label className="block mb-1">编码 *</Label>
               <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="如 FEATURE" disabled={Boolean(editing)} maxLength={20} />
@@ -215,7 +215,7 @@ export function ProjectTypesView() {
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="如 新功能" maxLength={50} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label className="block mb-1">标记颜色</Label>
               <div className="flex items-center gap-2">

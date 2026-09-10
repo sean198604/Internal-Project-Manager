@@ -11,13 +11,13 @@ export default async function LoginPage() {
 
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center px-6 py-10"
+      className="relative flex min-h-[100dvh] items-center justify-center px-4 py-8 sm:px-6 sm:py-10"
       style={{
         background:
           'radial-gradient(900px 480px at 85% -10%, rgba(219,234,254,0.9) 0%, rgba(219,234,254,0) 62%), radial-gradient(820px 420px at -8% 108%, rgba(237,233,254,0.85) 0%, rgba(237,233,254,0) 58%), #f5f7fb',
       }}
     >
-      <div className="relative w-[400px] max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white px-10 pb-8 pt-10 shadow-[0_24px_70px_-24px_rgba(15,23,42,0.22)]">
+      <div className="relative w-[400px] max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 pb-7 pt-8 shadow-[0_24px_70px_-24px_rgba(15,23,42,0.22)] sm:px-10 sm:pb-8 sm:pt-10">
         {/* 顶部渐变条 */}
         <div
           className="absolute left-0 right-0 top-0 h-1"

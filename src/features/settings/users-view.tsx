@@ -239,7 +239,7 @@ export function UsersView({ meId }: { meId: string }) {
       >
         <div className="space-y-4">
           {!editing && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label className="block mb-1">用户名 *</Label>
                 <Input
@@ -261,7 +261,7 @@ export function UsersView({ meId }: { meId: string }) {
               <Input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} maxLength={50} />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label className="block mb-1">{editing ? '重置密码（留空不改）' : '初始密码 *'}</Label>
               <Input
