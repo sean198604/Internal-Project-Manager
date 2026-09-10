@@ -46,7 +46,8 @@ export async function setSessionCookie(token: string): Promise<void> {
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: IS_PRODUCTION,
+    // 内网 HTTP 部署必须显式关闭 Secure；HTTPS 生产环境保持默认开启。
+    secure: env.COOKIE_SECURE ?? IS_PRODUCTION,
     path: '/',
     maxAge: MAX_AGE_SECONDS,
   });

@@ -11,6 +11,8 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      # 当前服务通过局域网 HTTP 访问；切换 HTTPS 后改为 true。
+      COOKIE_SECURE: "false"
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:

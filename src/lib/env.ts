@@ -6,6 +6,10 @@ const envSchema = z.object({
     .string()
     .min(32, 'APP_SECRET must be at least 32 characters'),
   APP_TIMEZONE: z.string().default('Asia/Taipei'),
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v == null ? undefined : v === 'true')),
   ADMIN_INITIAL_PASSWORD: z.string().min(1),
   MASTER_INITIAL_PASSWORD: z.string().min(1),
   MAX_UPLOAD_SIZE_MB: z.coerce.number().int().positive().default(20),

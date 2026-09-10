@@ -1,6 +1,6 @@
 # Internal-Project-Manager（项目管理中心）· Codex 交接文档
 
-> 更新时间：2026-09-10 17:16（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
+> 更新时间：2026-09-10 17:27（Asia/Shanghai）｜ 上版 2026-09-08 14:40（已并入本文，git 历史 3e2d751 可回溯）
 > 交接目的：完整进度 + 系统要点 + **未完成待办**，供 Codex 无缝接手。
 > 项目路径：`C:\Users\Administrator\Documents\Github\Internal-Project-Manager`
 > GitHub：`sean198604/Internal-Project-Manager`（**PRIVATE**，远端已建并 push）
@@ -32,6 +32,7 @@
 - 应用端口 **3010**（3000 与 7000-7010 被 Docker Desktop 代理占用，不可用）
 - PostgreSQL **5432**，连接串仅见本地 `.env`（gitignored，禁止写入文档或镜像）
 - 生产应用由 `compose.yaml` 管理；容器内通过 `host.docker.internal` 连接宿主机 PostgreSQL，上传目录 `storage/` 挂载持久化
+- 当前通过局域网 HTTP 访问，Compose 必须设置 `COOKIE_SECURE=false`；未来切换 HTTPS 后改为 `true`，否则浏览器会丢弃登录 Cookie
 - 时区铁律：**数据库存 UTC，展示一律 Asia/Taipei**（`.env` `APP_TIMEZONE=Asia/Taipei`；前端用 `src/lib/time.ts`，禁止 getUTC* 直显）
 - FastGPT 已独立部署 `192.168.1.246:3000`，**不入库、不 iframe、不重新部署**；AI 相关（P2）表一律未创建
 - `wsl.exe` 被安全策略拦截，不可调用
@@ -255,6 +256,7 @@ storage/documents/       # 上传文件落盘（gitignored）
 2. **应用生产容器化**：新增 Node 20 Alpine 多阶段 `Dockerfile`、`compose.yaml`、安全构建忽略规则和容器入口脚本；生产构建完整通过
 3. **自启动与持久化**：`ipm-app` / `ipm-postgres` 均设置 `restart: unless-stopped`，Docker Desktop 已启用 AutoStart；`storage/` 绑定挂载，上传文件不随容器重建丢失
 4. **运行验证**：`ipm-app` 状态 healthy，`/api/health` 返回 app/database 均为 ok，`http://192.168.1.246:3010/login` 返回 200；受控重启后再次健康
+5. **生产登录 Cookie 修复**：容器生产模式原先自动写入 `Secure` Cookie，局域网 HTTP 浏览器会拒收，表现为密码正确但登录后仍回到登录页。新增 `COOKIE_SECURE` 环境项，Compose 对当前 HTTP 部署显式设为 `false`；实测登录 200、Cookie 已保存、`/api/auth/me` 返回 admin/ADMIN
 
 ### 09-09
 1. **进度更新回填机制落地并回填 5 批**：试点 0023 HR(11 条) → 0010 文化积分(11) + 0011 众瀚四季(10) → 0001 装箱计算器(14) + 0002 Doc-Slim(6) → 0017 FastGPT(7) + 0021 NewsNow(6)。累计 8 个项目 66 条；每批读取项目记忆或用 Git/Docker/项目文档交叉验证，双写 ProjectUpdate+ProjectTimelineEvent，lastUpdateAt 同步
@@ -288,6 +290,7 @@ storage/documents/       # 上传文件落盘（gitignored）
 - **生产服务启动**：优先使用 `docker compose up -d app`；容器已配置自动重启，不要再依赖长期挂着的 `npm run dev` 终端
 - **Docker 构建基础镜像**：当前使用本机已有 `node:20-alpine`；Docker Hub 鉴权偶发超时，除非必要不要切换到未缓存的新标签
 - **数据库容器归属**：`ipm-postgres` 是既有独立容器，不在 `compose.yaml` 内；应用入口会把 `.env` 中的本地主机地址转换为 `host.docker.internal`
+- **HTTP 登录 Cookie**：生产环境默认 Secure；当前内网仍是 HTTP，因此 `compose.yaml` 显式设置 `COOKIE_SECURE=false`。启用 HTTPS 时必须改回 `true`
 - **docker inspect 直查**：容器名按 deployment.serviceName 匹配，中文/特殊名用端口兜底
 - **列表分页**：默认 pageSize=20，批量处理全量用 pageSize=100
 - **编号验证**：先排除软删（deletedAt 非空）记录（0004 曾误导「0004=Prompt Hub」）
