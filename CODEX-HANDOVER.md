@@ -241,7 +241,7 @@ storage/documents/       # 上传文件落盘（gitignored）
 - 设计令牌：`--primary #1a365d`、`--primary-light #dbeafe`、`--info #378ADD`、`--accent #f59e0b`、`--success #16a34a`、`--danger #dc2626`；正文 `#1e293b` / 次要 `#64748b` / 边框 `#e2e8f0` / 背景 `#f8fafc`
 - 字体栈：Inter / SF Pro Text / -apple-system / PingFang SC / 微软雅黑
 - 侧栏 224↔68px（localStorage `ipm_sb`）；**aside `md:sticky md:top-0 md:h-screen` 固定视口**，nav 区 flex-1 overflow-y-auto，用户区固定底部常显；active 浅蓝底 + 左 3px 深蓝条
-- 顶栏 sticky h-12 毛玻璃，只显「部门 · 角色」
+- 顶栏为全局 sticky 页面工具栏：显示页面英文分类、中文标题、说明和右侧主操作；页面通过 `WorkspacePageHeader` 注入内容，移动端同时保留菜单入口
 - 编辑器弹窗宽 1152px（max-w-[1152px]）；详情头部绿色「✓ 标记已完成」
 - 下拉/弹窗白底（不用玻璃）；表格编号 tabular-nums；卡片 rounded-xl
 - 登录页：径向渐变蓝紫 + 白卡 + 顶部渐变条；favicon = `app/icon.jpg`（SEAN logo）
@@ -249,9 +249,15 @@ storage/documents/       # 上传文件落盘（gitignored）
 
 ---
 
-## 10. 近期变更明细（按天，09-06 → 09-10）
+## 10. 近期变更明细（按天，09-06 → 09-11）
 
-### 09-10（今日）
+### 09-11（今日）
+1. **项目列表状态分栏**：新增「已完成」页签，顺序为「项目 / 已完成 / 已归档 / 全部」；默认项目页仅含 DRAFT、PLANNED、IN_PROGRESS、WAITING_ACCEPTANCE、ON_HOLD，COMPLETED 和 ARCHIVED 分别进入独立页签
+2. **统一固定页面工具栏**：新增 `WorkspaceShell` / `WorkspacePageHeader`，Overview、Projects、Archive、分享与设置页面的标题、说明锁定在顶部；正文不再重复标题区
+3. **主操作统一右置**：新建项目、新建账号、新建部门、新建类型、新建分享链接统一进入顶部工具栏右侧；桌面与移动端共用
+
+### 09-10
+
 1. **恢复 3010 服务**：确认宕机根因是手工运行的 Next.js 进程不存在，PostgreSQL 与项目数据始终正常
 2. **应用生产容器化**：新增 Node 20 Alpine 多阶段 `Dockerfile`、`compose.yaml`、安全构建忽略规则和容器入口脚本；生产构建完整通过
 3. **自启动与持久化**：`ipm-app` / `ipm-postgres` 均设置 `restart: unless-stopped`，Docker Desktop 已启用 AutoStart；`storage/` 绑定挂载，上传文件不随容器重建丢失

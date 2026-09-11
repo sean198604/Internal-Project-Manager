@@ -5,6 +5,7 @@ import { Table, Th, Td } from '@/components/ui/table';
 import { StatusBadge, PriorityBadge, type Status } from '@/components/status-badge';
 import { getActorOrNull } from '@/server/lib/auth';
 import { getShare } from '@/server/modules/projects/subresources';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,11 +23,22 @@ export default async function ShareDetailPage({ params }: Params) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Share Links</div>
-          <h1 className="text-xl font-semibold text-fg">{data.name ?? '未命名分享'}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+      <WorkspacePageHeader
+        eyebrow="Share Links"
+        title={data.name ?? '未命名分享'}
+        description={`创建于 ${data.createdAt.slice(0, 10)} · 有效期至 ${data.expiresAt ? data.expiresAt.slice(0, 10) : '永久'} · 访问 ${data.accessCount} 次`}
+        actions={
+          <div className="flex items-center gap-2">
+            {isActive && (
+              <Link href={data.shareUrl} target="_blank" className="btn-secondary">
+                预览 ↗
+              </Link>
+            )}
+            <Link href="/shares" className="btn-ghost">返回</Link>
+          </div>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-3 text-sm">
             {isActive ? (
               <Badge tone="green" dot>有效</Badge>
             ) : data.revokedAt ? (
@@ -37,25 +49,6 @@ export default async function ShareDetailPage({ params }: Params) {
             <span className="text-muted">创建于 {data.createdAt.slice(0, 10)}</span>
             <span className="text-muted">有效期至 {data.expiresAt ? data.expiresAt.slice(0, 10) : '永久'}</span>
             <span className="text-muted">访问 {data.accessCount} 次</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {isActive && (
-            <Link
-              href={data.shareUrl}
-              target="_blank"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-            >
-              预览对方看到的内容 ↗
-            </Link>
-          )}
-          <Link
-            href="/shares"
-            className="text-sm text-blue-700 hover:underline"
-          >
-            ← 返回分享列表
-          </Link>
-        </div>
       </div>
 
       <Card>

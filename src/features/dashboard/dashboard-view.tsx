@@ -7,6 +7,7 @@ import type { Role } from '@prisma/client';
 import { Card, CardHeader, StatCard, Badge } from '@/components/ui/primitives';
 import { Table, Th, Td } from '@/components/ui/table';
 import { PriorityBadge, StatusBadge } from '@/components/status-badge';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type FocusItem = {
   id: string;
@@ -51,16 +52,16 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Overview</div>
-          <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">项目总览</h1>
-          <p className="mt-1 text-sm text-muted">{isPrivileged ? '可查看全部项目数据' : '可查看本部门项目数据'}</p>
-        </div>
-        <Link href="/projects/new" className="btn-primary inline-flex h-11 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
+      <WorkspacePageHeader
+        eyebrow="Overview"
+        title="项目总览"
+        description={isPrivileged ? '可查看全部项目数据' : '可查看本部门项目数据'}
+        actions={
+          <Link href="/projects/new" className="btn-primary inline-flex h-10 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
           <Plus size={15} /> 新建项目
-        </Link>
-      </div>
+          </Link>
+        }
+      />
 
       {/* 关键指标 */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

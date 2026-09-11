@@ -7,6 +7,7 @@ import { Input, Select, Label, FieldError } from '@/components/ui/field';
 import { Modal } from '@/components/ui/modal';
 import { Table, Th, Td } from '@/components/ui/table';
 import { useToast, apiFetch } from '@/components/form-helpers';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type Dept = {
   id: string;
@@ -140,16 +141,12 @@ export function DepartmentsView() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Settings</div>
-          <h1 className="text-xl font-semibold text-fg">部门管理</h1>
-          <div className="mt-1 text-sm text-muted">
-            共 {items?.length ?? 0} 个部门{inactiveCount > 0 && `（其中 ${inactiveCount} 个已停用）`}
-          </div>
-        </div>
-        <Button onClick={openCreate}>+ 新建部门</Button>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Settings · Departments"
+        title="部门管理"
+        description={`共 ${items?.length ?? 0} 个部门${inactiveCount > 0 ? `（其中 ${inactiveCount} 个已停用）` : ''}`}
+        actions={<Button onClick={openCreate}>+ 新建部门</Button>}
+      />
 
       <Card>
         <CardHeader

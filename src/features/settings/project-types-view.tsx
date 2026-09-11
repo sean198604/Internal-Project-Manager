@@ -7,6 +7,7 @@ import { Input, Label, FieldError } from '@/components/ui/field';
 import { Modal } from '@/components/ui/modal';
 import { Table, Th, Td } from '@/components/ui/table';
 import { useToast, apiFetch } from '@/components/form-helpers';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type PType = {
   id: string;
@@ -117,14 +118,12 @@ export function ProjectTypesView() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Settings</div>
-          <h1 className="text-xl font-semibold text-fg">项目类型管理</h1>
-          <div className="mt-1 text-sm text-muted">共 {items?.length ?? 0} 个类型</div>
-        </div>
-        <Button onClick={openCreate}>+ 新建类型</Button>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Settings · Project Types"
+        title="项目类型管理"
+        description={`共 ${items?.length ?? 0} 个类型`}
+        actions={<Button onClick={openCreate}>+ 新建类型</Button>}
+      />
 
       <Card>
         <CardHeader title="类型列表" description="用于给项目分类（新功能 / 优化 / Bug 修复等）。删除前需先转移其下的项目。" />

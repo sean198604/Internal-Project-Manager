@@ -8,6 +8,7 @@ import { Input, Label, Textarea, Select, FieldHelp } from '@/components/ui/field
 import { Card, CardHeader, CardBody } from '@/components/ui/primitives';
 import { apiFetch } from '@/components/form-helpers';
 import { STATUS_LABEL, StatusBadge } from '@/components/status-badge';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 import { LIFECYCLE, PStatus, advanceStatus, findPath, todayTaipei } from './status-flow';
 
 type Department = { id: string; name: string; category?: 'BUSINESS' | 'FUNCTION' };
@@ -300,17 +301,13 @@ export function ProjectEditor({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <div>
-        <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Projects</div>
-        <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-          {mode === 'create' ? '新建项目' : `编辑：${initialValue?.projectCode ?? ''}`}
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          {mode === 'create'
-            ? '下方标记 * 的为核心字段。新项目将以「草稿 · 0%」创建，保存后可在详情页推进状态。'
-            : '状态支持一步直达：保存时按状态机自动逐级流转（如 草稿 → 进行中 → 已完成）。'}
-        </p>
-      </div>
+      {mode === 'create' && (
+        <WorkspacePageHeader
+          eyebrow="Projects"
+          title="新建项目"
+          description="下方标记 * 的为核心字段。新项目将以「草稿 · 0%」创建，保存后可在详情页推进状态。"
+        />
+      )}
 
       {error && <div className="rounded-md bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm">{error}</div>}
 

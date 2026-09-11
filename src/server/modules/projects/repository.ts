@@ -39,17 +39,18 @@ export type ProjectListItem = Prisma.ProjectGetPayload<{ select: typeof PROJECT_
 
 export type ListProjectsParams = z.infer<typeof listProjectsSchema>;
 
-// 在管项目：含已完成但未归档（COMPLETED ≠ ARCHIVED，完成 ≠ 沉淀为资产）
+// 默认「项目」视图只展示仍在推进的项目；完成与归档各自进入独立页签。
 const ACTIVE_STATUSES: ProjectStatus[] = [
   'DRAFT',
   'PLANNED',
   'IN_PROGRESS',
   'WAITING_ACCEPTANCE',
   'ON_HOLD',
-  'COMPLETED',
 ];
 
-// 归档列表 = 纯软件资产；CANCELLED/MERGED 仅出现在「全部」视图
+const COMPLETED_STATUSES: ProjectStatus[] = ['COMPLETED'];
+
+// 归档列表 = 纯软件资产；CANCELLED/MERGED 仅出现在「全部」视图。
 const ARCHIVE_STATUSES: ProjectStatus[] = ['ARCHIVED'];
 
 export function buildListWhere(
@@ -58,10 +59,23 @@ export function buildListWhere(
 ): Prisma.ProjectWhereInput {
   const extra: Prisma.ProjectWhereInput = {};
 
-  if (params.view === 'active') extra.status = { in: ACTIVE_STATUSES };
-  if (params.view === 'archive') extra.status = { in: ARCHIVE_STATUSES };
+  const viewStatuses =
+    params.view === 'active'
+      ? ACTIVE_STATUSES
+      : params.view === 'completed'
+        ? COMPLETED_STATUSES
+        : params.view === 'archive'
+          ? ARCHIVE_STATUSES
+          : null;
+
+  if (viewStatuses) extra.status = { in: viewStatuses };
   if (params.status?.length) {
-    extra.status = { in: params.status as ProjectStatus[] };
+    const requestedStatuses = params.status as ProjectStatus[];
+    extra.status = {
+      in: viewStatuses
+        ? requestedStatuses.filter((status) => viewStatuses.includes(status))
+        : requestedStatuses,
+    };
   }
 
   // 部门过滤：ADMIN/MASTER 可指定；USER 会被 Scope 强制覆盖

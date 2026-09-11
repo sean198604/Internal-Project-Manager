@@ -8,7 +8,6 @@ import {
   Archive,
   ArrowRightLeft,
   Calendar,
-  ChevronRight,
   CircleDot,
   ClipboardCheck,
   Download,
@@ -38,6 +37,7 @@ import { Input, Label, Textarea, Select, FieldHelp } from '@/components/ui/field
 import { HealthBadge, PriorityBadge, STATUS_LABEL, StatusBadge } from '@/components/status-badge';
 import { StarRating } from '@/components/star-rating';
 import { apiFetch } from '@/components/form-helpers';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 import { ProjectEditor } from './project-editor';
 import { advanceStatus, todayTaipei, type PStatus } from './status-flow';
 
@@ -183,19 +183,15 @@ export function ProjectDetailView({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      <WorkspacePageHeader
+        eyebrow={`Projects · ${project.projectCode}`}
+        title={project.name}
+        description={`${project.department?.name ?? '未分配部门'} · ${project.projectType?.name ?? '未分类'}${project.systemName ? ` · 系统名：${project.systemName}` : ''}`}
+      />
       {/* 顶部摘要 */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <span className="font-mono">{project.projectCode}</span>
-            <ChevronRight size={12} />
-            <span>{project.department?.name}</span>
-            <ChevronRight size={12} />
-            <span>{project.projectType?.name}</span>
-          </div>
-          <h1 className="mt-1 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{project.name}</h1>
-          {project.systemName && <div className="text-sm text-muted">系统名：{project.systemName}</div>}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={project.status} />
             <HealthBadge health={project.healthStatus} />
             <PriorityBadge priority={project.priority} />

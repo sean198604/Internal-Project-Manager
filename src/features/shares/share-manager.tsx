@@ -19,6 +19,7 @@ import { Input, Label, Select, FieldHelp } from '@/components/ui/field';
 import { Modal } from '@/components/ui/modal';
 import { StatusBadge, STATUS_LABEL, type Status } from '@/components/status-badge';
 import { useToast, apiFetch } from '@/components/form-helpers';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type ShareItem = {
   id: string;
@@ -179,19 +180,21 @@ export function ShareManager({ preselect }: { preselect: string | null }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Share Links</div>
-          <h1 className="text-xl font-semibold text-fg">分享链接</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted">
+      <WorkspacePageHeader
+        eyebrow="Share Links"
+        title="分享链接"
+        description={
+          <>
             勾选多个项目打包成一个链接，发给内网任何人。对方<strong>无需登录</strong>，打开链接即可看到你选择的项目。
             链接中不会包含服务器 / 部署 / 维护说明等内部信息。
-          </p>
-        </div>
-        <Button onClick={() => { setCreatedUrl(null); setOpen(true); }}>
-          <Plus size={15} /> 新建分享链接
-        </Button>
-      </div>
+          </>
+        }
+        actions={
+          <Button onClick={() => { setCreatedUrl(null); setOpen(true); }}>
+            <Plus size={15} /> 新建分享链接
+          </Button>
+        }
+      />
 
       {toast && (
         <div

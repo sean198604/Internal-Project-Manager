@@ -70,7 +70,7 @@ export const listProjectsSchema = z.object({
   priority: z.string().optional(),
   dueFrom: dateString,
   dueTo: dateString,
-  view: z.enum(['active', 'archive', 'all']).default('active'),
+  view: z.enum(['active', 'completed', 'archive', 'all']).default('active'),
   sort: z
     .enum(['updatedAt', 'dueDate', 'createdAt', 'priority', 'projectCode', 'lastUpdateAt', 'port'])
     .default('updatedAt'),
@@ -183,4 +183,3 @@ export const createShareSchema = z.object({
   /** 有效天数；null = 永久有效 */
   expiresInDays: z.coerce.number().int().min(1).max(3650).nullable().optional().default(30),
 });
-

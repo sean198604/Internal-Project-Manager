@@ -7,6 +7,7 @@ import { Input, Select, Label, FieldHelp, FieldError } from '@/components/ui/fie
 import { Modal } from '@/components/ui/modal';
 import { Table, Th, Td } from '@/components/ui/table';
 import { useToast, apiFetch } from '@/components/form-helpers';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type DeptOpt = { id: string; name: string; code: string };
 type UserRow = {
@@ -141,16 +142,12 @@ export function UsersView({ meId }: { meId: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted">Settings</div>
-          <h1 className="text-xl font-semibold text-fg">用户管理</h1>
-          <div className="mt-1 text-sm text-muted">
-            共 {items?.length ?? 0} 个账号，{activeCount} 个启用中
-          </div>
-        </div>
-        <Button onClick={openCreate}>+ 新建账号</Button>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Settings · Users"
+        title="用户管理"
+        description={`共 ${items?.length ?? 0} 个账号，${activeCount} 个启用中`}
+        actions={<Button onClick={openCreate}>+ 新建账号</Button>}
+      />
 
       <Card>
         <CardHeader

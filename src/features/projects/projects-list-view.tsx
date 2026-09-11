@@ -13,11 +13,30 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/primitives';
 import { apiFetch } from '@/components/form-helpers';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 type SortKey = 'updatedAt' | 'lastUpdateAt' | 'dueDate' | 'createdAt' | 'priority' | 'projectCode' | 'port';
-type ViewKey = 'active' | 'archive' | 'all';
+type ViewKey = 'active' | 'completed' | 'archive' | 'all';
+const ALL_STATUSES = [
+  'DRAFT',
+  'PLANNED',
+  'IN_PROGRESS',
+  'WAITING_ACCEPTANCE',
+  'ON_HOLD',
+  'COMPLETED',
+  'ARCHIVED',
+  'CANCELLED',
+  'MERGED',
+] as const;
+const STATUS_BY_VIEW: Record<ViewKey, readonly (typeof ALL_STATUSES)[number][]> = {
+  active: ['DRAFT', 'PLANNED', 'IN_PROGRESS', 'WAITING_ACCEPTANCE', 'ON_HOLD'],
+  completed: ['COMPLETED'],
+  archive: ['ARCHIVED'],
+  all: ALL_STATUSES,
+};
+
 function isViewKey(v: string | null | undefined): v is ViewKey {
-  return v === 'active' || v === 'archive' || v === 'all';
+  return v === 'active' || v === 'completed' || v === 'archive' || v === 'all';
 }
 function isSortKey(v: string | null | undefined): v is SortKey {
   return v === 'updatedAt' || v === 'lastUpdateAt' || v === 'dueDate' || v === 'createdAt' || v === 'priority' || v === 'projectCode' || v === 'port';
@@ -143,24 +162,25 @@ export function ProjectsListView({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-slate-400">Projects</div>
-          <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">项目列表</h1>
-          <p className="mt-1 hidden text-sm text-slate-500 sm:block">集中检索、跟踪和维护全部项目</p>
-        </div>
-        <Link href="/projects/new" className="btn-primary inline-flex h-11 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
-          <Plus size={15} /> 新建项目
-        </Link>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Projects"
+        title="项目列表"
+        description="集中检索、跟踪和维护全部项目"
+        actions={
+          <Link href="/projects/new" className="btn-primary inline-flex h-10 shrink-0 items-center gap-1.5 px-3.5 text-sm sm:px-4">
+            <Plus size={15} /> 新建项目
+          </Link>
+        }
+      />
 
       {/* 视图切换 */}
       <div className="flex items-center gap-1 overflow-x-auto border-b border-line text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {(['active', 'archive', 'all'] as const).map((v) => (
+        {(['active', 'completed', 'archive', 'all'] as const).map((v) => (
           <button
             key={v}
             onClick={() => {
               setView(v);
+              setStatus('');
               setPage(1);
             }}
             className={
@@ -170,7 +190,13 @@ export function ProjectsListView({
                 : 'border-transparent text-muted hover:text-fg')
             }
           >
-            {v === 'active' ? '项目' : v === 'archive' ? '已归档' : '全部'}
+            {v === 'active'
+              ? '项目'
+              : v === 'completed'
+                ? '已完成'
+                : v === 'archive'
+                  ? '已归档'
+                  : '全部'}
           </button>
         ))}
       </div>
@@ -205,7 +231,7 @@ export function ProjectsListView({
           </div>
           <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
             <option value="">全部状态</option>
-            {(['DRAFT', 'PLANNED', 'IN_PROGRESS', 'WAITING_ACCEPTANCE', 'ON_HOLD', 'COMPLETED', 'ARCHIVED', 'CANCELLED', 'MERGED'] as const).map((s) => (
+            {STATUS_BY_VIEW[view].map((s) => (
               <option key={s} value={s}>{STATUS_LABEL[s]}</option>
             ))}
           </Select>

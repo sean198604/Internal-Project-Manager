@@ -8,6 +8,7 @@ import { prisma } from '@/server/db/prisma';
 import { getActorOrNull } from '@/server/lib/auth';
 import { isAdminOrMaster } from '@/server/lib/authz';
 import { formatDateTime } from '@/lib/time';
+import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,18 +94,16 @@ export default async function ArchivePage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="text-[11px] font-bold uppercase tracking-[1.2px] text-slate-400">
-          Archive · 资产
-        </div>
-        <h1 className="mt-0.5 text-xl font-extrabold tracking-tight text-slate-900 sm:text-[24px]">
-          历史项目 / 软件资产
-        </h1>
-        <p className="mt-1 text-[12.5px] text-slate-500 max-w-[820px]">
+      <WorkspacePageHeader
+        eyebrow="Archive · 资产"
+        title="历史项目 / 软件资产"
+        description={
+          <>
           「最近归档」为已沉淀的软件资产；已完成但未归档的项目仍在「项目 → 已完成」中维护，确认沉淀后点击归档才进入资产列表。
           列表默认按归档时间倒序；归档时间取自 docker 最后一次部署启动时间。
-        </p>
-      </div>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label="已完成" value={completed.length} tone="green" />

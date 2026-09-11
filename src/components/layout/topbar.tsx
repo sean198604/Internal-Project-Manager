@@ -8,15 +8,18 @@ import type { Role } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import { ChangePasswordDialog } from './change-password-dialog';
 import { NAV_MAIN, NAV_SETTINGS, ROLE_LABEL } from './sidebar';
+import type { WorkspaceHeaderConfig } from './workspace-shell';
 
 export function Topbar({
   departmentName,
   role,
   displayName,
+  pageHeader,
 }: {
   departmentName: string | null;
   role: Role;
   displayName: string;
+  pageHeader: WorkspaceHeaderConfig | null;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,11 +41,33 @@ export function Topbar({
   const mainItems = NAV_MAIN.filter((item) => item.roles.includes(role));
   const settingsItems = NAV_SETTINGS.filter((item) => item.roles.includes(role));
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const fallbackHeader: WorkspaceHeaderConfig = pathname.startsWith('/projects/new')
+    ? { eyebrow: 'Projects', title: '新建项目', description: '填写项目核心信息并创建项目' }
+    : pathname.startsWith('/projects/')
+      ? { eyebrow: 'Projects', title: '项目详情', description: '查看项目状态和完整资料' }
+      : pathname.startsWith('/projects')
+        ? { eyebrow: 'Projects', title: '项目列表', description: '集中检索、跟踪和维护全部项目' }
+        : pathname.startsWith('/archive')
+          ? { eyebrow: 'Archive · 资产', title: '历史项目 / 软件资产', description: '查看已经归档的软件资产' }
+          : pathname.startsWith('/shares')
+            ? { eyebrow: 'Share Links', title: '分享链接', description: '管理项目分享链接' }
+            : pathname.startsWith('/settings/users')
+              ? { eyebrow: 'Settings · Users', title: '用户管理', description: '管理系统账号和角色' }
+              : pathname.startsWith('/settings/departments')
+                ? { eyebrow: 'Settings · Departments', title: '部门管理', description: '管理项目部门归属' }
+                : pathname.startsWith('/settings/project-types')
+                  ? { eyebrow: 'Settings · Project Types', title: '项目类型管理', description: '管理项目分类' }
+                  : {
+                      eyebrow: 'Overview',
+                      title: '项目总览',
+                      description: departmentName ? `${departmentName} · ${ROLE_LABEL[role]}` : ROLE_LABEL[role],
+                    };
+  const currentHeader = pageHeader ?? fallbackHeader;
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-4 backdrop-blur-xl sm:px-6 md:h-14 md:px-8">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="sticky top-0 z-30 flex min-h-[84px] shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/95 px-4 py-2.5 shadow-[0_6px_24px_rgba(15,23,42,0.035)] backdrop-blur-xl sm:px-6 md:min-h-[92px] md:px-8">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
@@ -51,25 +76,25 @@ export function Topbar({
           >
             <Menu size={21} />
           </button>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#2c5aa0] to-[#1a365d] text-white shadow-sm md:hidden">
-            <Archive size={16} />
-          </div>
-          <div className="min-w-0">
-            <div className="truncate text-[13px] font-semibold text-slate-700">
-              {departmentName || '项目管理中心'}
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[10px] font-bold uppercase tracking-[1.35px] text-slate-400 sm:text-[11px]">
+              {currentHeader.eyebrow}
             </div>
-            <div className="truncate text-[11px] text-slate-400 md:hidden">{ROLE_LABEL[role]}</div>
+            <div className="truncate text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+              {currentHeader.title}
+            </div>
+            {currentHeader.description && (
+              <div className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-slate-500 sm:text-xs md:max-w-4xl md:line-clamp-2">
+                {currentHeader.description}
+              </div>
+            )}
           </div>
-          {departmentName && (
-            <>
-              <span className="hidden text-slate-300 md:inline">·</span>
-              <span className="hidden text-xs font-medium text-slate-500 md:inline">{ROLE_LABEL[role]}</span>
-            </>
-          )}
         </div>
-        <div className="hidden items-center gap-2 text-xs text-slate-500 sm:flex md:hidden">
-          <span className="max-w-32 truncate font-semibold text-slate-700">{displayName}</span>
-        </div>
+        {currentHeader.actions && (
+          <div className="flex shrink-0 items-center gap-2 max-sm:[&_button]:px-3 max-sm:[&_a]:px-3">
+            {currentHeader.actions}
+          </div>
+        )}
       </header>
 
       {menuOpen && (
