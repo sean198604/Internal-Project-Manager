@@ -1,21 +1,57 @@
 import type { AttachmentType, Prisma } from '@prisma/client';
 import { prisma } from '@/server/db/prisma';
 
+export const MIN_REQUIREMENT_LENGTH = 50;
+
 export const ARCHIVE_ITEMS = [
-  { key: 'REQUIREMENT', label: '项目需求完整', weight: 15 },
-  { key: 'ACCEPTANCE', label: '验收信息完整', weight: 10 },
-  { key: 'DEPLOYMENT', label: '部署信息完整', weight: 15 },
-  { key: 'VERSION', label: '当前版本完整', weight: 10 },
-  { key: 'DOCUMENT', label: '文档已提交', weight: 15 },
-  { key: 'SCREENSHOT', label: '截图已提交', weight: 10 },
-  { key: 'SPECIAL_NOTES', label: '特殊注意事项已记录', weight: 10 },
-  { key: 'MAINTENANCE', label: '维护方式已记录', weight: 10 },
-  { key: 'CONFIRMED', label: '负责人已确认', weight: 5 },
+  {
+    key: 'REQUIREMENT', label: '项目需求完整', weight: 15,
+    description: '已沉淀项目要解决的问题、范围和关键需求。',
+    criteria: `项目需求不少于 ${MIN_REQUIREMENT_LENGTH} 个字符。`,
+  },
+  {
+    key: 'ACCEPTANCE', label: '验收信息完整', weight: 10,
+    description: '已记录验收人和验收日期，确认成果已交付。',
+    criteria: '同时填写验收人和验收日期。',
+  },
+  {
+    key: 'DEPLOYMENT', label: '部署信息完整', weight: 15,
+    description: '至少登记一条可追溯的部署记录。',
+    criteria: '存在至少一条部署记录（环境、主机、端口等按实际填写）。',
+  },
+  {
+    key: 'VERSION', label: '当前版本完整', weight: 10,
+    description: '明确当前可运行的软件版本或版本标识。',
+    criteria: '“当前版本”字段不为空。',
+  },
+  {
+    key: 'DOCUMENT', label: '文档已提交', weight: 15,
+    description: '已上传可供后续维护人员查阅的项目文档。',
+    criteria: '至少存在一份当前版本的“文档”类型资料。',
+  },
+  {
+    key: 'SCREENSHOT', label: '图片资料已提交', weight: 10,
+    description: '已上传系统界面、关键流程或部署佐证图片。',
+    criteria: '至少存在一张当前版本的“截图”类型图片。',
+  },
+  {
+    key: 'SPECIAL_NOTES', label: '特殊注意事项已记录', weight: 10,
+    description: '记录限制条件、风险、升级顺序或禁止操作。',
+    criteria: '“特殊注意事项”字段不为空。',
+  },
+  {
+    key: 'MAINTENANCE', label: '维护方式已记录', weight: 10,
+    description: '说明启动、停止、重启、回滚或日常维护方式。',
+    criteria: '“维护说明”字段不为空。',
+  },
+  {
+    key: 'CONFIRMED', label: '负责人已确认', weight: 5,
+    description: '由归档负责人确认资产资料可交接、可追溯。',
+    criteria: '已完成归档负责人确认。',
+  },
 ] as const;
 
 export type ArchiveItemKey = (typeof ARCHIVE_ITEMS)[number]['key'];
-
-export const MIN_REQUIREMENT_LENGTH = 50;
 
 /** 归档门槛：低于此分数归档需二次确认（不阻止归档） */
 export const ARCHIVE_WARNING_THRESHOLD = 60;

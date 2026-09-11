@@ -580,11 +580,18 @@ export async function getArchiveState(actor: Actor, projectId: string) {
     currentVersion: project2.currentVersion,
     archiveCompleteness: project2.archiveCompleteness,
     archivedAt: project2.archivedAt ? project2.archivedAt.toISOString() : null,
-    items: items.map((it) => ({
-      key: it.itemKey,
-      isChecked: it.isChecked,
-      isAutoChecked: it.isAutoChecked,
-    })),
+    items: ARCHIVE_ITEMS.map((config) => {
+      const item = items.find((it) => it.itemKey === config.key);
+      return {
+        key: config.key,
+        label: config.label,
+        description: config.description,
+        criteria: config.criteria,
+        weight: config.weight,
+        isChecked: item?.isChecked ?? false,
+        isAutoChecked: item?.isAutoChecked ?? false,
+      };
+    }),
   };
 }
 

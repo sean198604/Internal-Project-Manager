@@ -8,6 +8,7 @@ import {
   Archive,
   ArrowRightLeft,
   Calendar,
+  CircleHelp,
   CircleDot,
   ClipboardCheck,
   Download,
@@ -61,6 +62,40 @@ type Deployment = {
   status: string;
   notes: string | null;
   lastVerifiedAt: string | null;
+};
+
+type DeploymentForm = {
+  environment: string;
+  serverName: string;
+  serverIp: string;
+  hostname: string;
+  port: string;
+  protocol: string;
+  deploymentPath: string;
+  serviceName: string;
+  runtime: string;
+  database: string;
+  version: string;
+  status: string;
+  notes: string;
+  lastVerifiedAt: string;
+};
+
+const EMPTY_DEPLOYMENT_FORM: DeploymentForm = {
+  environment: 'DEVELOPMENT',
+  serverName: '',
+  serverIp: '',
+  hostname: '',
+  port: '',
+  protocol: 'http',
+  deploymentPath: '',
+  serviceName: '',
+  runtime: '',
+  database: '',
+  version: '',
+  status: 'ACTIVE',
+  notes: '',
+  lastVerifiedAt: '',
 };
 
 const ENV_LABEL: Record<string, string> = {
@@ -286,7 +321,8 @@ export function ProjectDetailView({
           { key: 'overview', label: '概览' },
           { key: 'updates', label: '进度更新', badge: updates ? <Badge tone="neutral">{updates.length}</Badge> : null },
           { key: 'deployment', label: '部署', badge: isPrivileged && deployments ? <Badge tone="neutral">{deployments.length}</Badge> : null },
-          { key: 'documents', label: '文档', badge: documents ? <Badge tone="neutral">{documents.length}</Badge> : null },
+          { key: 'documents', label: '文档', badge: documents ? <Badge tone="neutral">{documents.filter((d) => d.docType !== 'SCREENSHOT').length}</Badge> : null },
+          { key: 'images', label: '图片', badge: documents ? <Badge tone="neutral">{documents.filter((d) => d.docType === 'SCREENSHOT').length}</Badge> : null },
           { key: 'archive', label: '归档清单' },
           { key: 'lineage', label: '谱系' },
           ...(isPrivileged ? [{ key: 'history' as const, label: '历史' }] : []),
@@ -315,6 +351,10 @@ export function ProjectDetailView({
 
         <TabPanel forKey="documents">
           <DocumentsPanel projectId={project.id} canEdit={perm.canEdit} items={documents} onChanged={loadAll} />
+        </TabPanel>
+
+        <TabPanel forKey="images">
+          <ImagesPanel projectId={project.id} canEdit={perm.canEdit} items={documents} onChanged={loadAll} />
         </TabPanel>
 
         <TabPanel forKey="archive">
@@ -618,23 +658,46 @@ function DeploymentPanel({
   onChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Deployment | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    environment: 'DEVELOPMENT',
-    serverName: '',
-    serverIp: '',
-    hostname: '',
-    port: '',
-    protocol: 'http',
-    deploymentPath: '',
-    serviceName: '',
-    runtime: '',
-    database: '',
-    version: '',
-    status: 'ACTIVE',
-    notes: '',
-  });
+  const [form, setForm] = useState<DeploymentForm>(EMPTY_DEPLOYMENT_FORM);
+
+  function closeModal() {
+    setOpen(false);
+    setEditing(null);
+    setError(null);
+    setForm(EMPTY_DEPLOYMENT_FORM);
+  }
+
+  function openCreate() {
+    setEditing(null);
+    setError(null);
+    setForm(EMPTY_DEPLOYMENT_FORM);
+    setOpen(true);
+  }
+
+  function openEdit(deployment: Deployment) {
+    setEditing(deployment);
+    setError(null);
+    setForm({
+      environment: deployment.environment,
+      serverName: deployment.serverName ?? '',
+      serverIp: deployment.serverIp ?? '',
+      hostname: deployment.hostname ?? '',
+      port: deployment.port?.toString() ?? '',
+      protocol: deployment.protocol ?? 'http',
+      deploymentPath: deployment.deploymentPath ?? '',
+      serviceName: deployment.serviceName ?? '',
+      runtime: deployment.runtime ?? '',
+      database: deployment.database ?? '',
+      version: deployment.version ?? '',
+      status: deployment.status,
+      notes: deployment.notes ?? '',
+      lastVerifiedAt: deployment.lastVerifiedAt?.slice(0, 10) ?? '',
+    });
+    setOpen(true);
+  }
 
   async function submit() {
     setSaving(true);
@@ -652,12 +715,13 @@ function DeploymentPanel({
         database: form.database || null,
         version: form.version || null,
         notes: form.notes || null,
+        lastVerifiedAt: form.lastVerifiedAt || null,
       };
-      await apiFetch(`/api/projects/${projectId}/deployments`, {
-        method: 'POST',
+      await apiFetch(editing ? `/api/deployments/${editing.id}` : `/api/projects/${projectId}/deployments`, {
+        method: editing ? 'PATCH' : 'POST',
         body: JSON.stringify(payload),
       });
-      setOpen(false);
+      closeModal();
       onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : '保存失败');
@@ -675,7 +739,7 @@ function DeploymentPanel({
   return (
     <div className="space-y-4 mt-4">
       <div className="flex justify-end">
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={openCreate}>
           <Plus size={14} /> 新增部署
         </Button>
       </div>
@@ -709,9 +773,14 @@ function DeploymentPanel({
                   </div>
                 }
                 actions={
-                  <button className="text-muted hover:text-red-600 p-1" onClick={() => remove(d.id)} title="删除">
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button className="rounded-md p-1.5 text-muted hover:bg-slate-100 hover:text-[#1a365d]" onClick={() => openEdit(d)} title="编辑部署">
+                      <Pencil size={14} />
+                    </button>
+                    <button className="rounded-md p-1.5 text-muted hover:bg-red-50 hover:text-red-600" onClick={() => remove(d.id)} title="删除部署">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 }
               />
               <CardBody className="space-y-1 text-sm">
@@ -732,10 +801,10 @@ function DeploymentPanel({
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="新增部署" size="lg" footer={
+      <Modal open={open} onClose={closeModal} title={editing ? '编辑部署' : '新增部署'} size="lg" footer={
         <>
-          <Button variant="ghost" onClick={() => setOpen(false)}>取消</Button>
-          <Button onClick={submit} loading={saving}>保存</Button>
+          <Button variant="ghost" onClick={closeModal}>取消</Button>
+          <Button onClick={submit} loading={saving}>{editing ? '保存修改' : '保存部署'}</Button>
         </>
       }>
         {error && <div className="rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm mb-3">{error}</div>}
@@ -757,9 +826,9 @@ function DeploymentPanel({
               <option value="UNKNOWN">未知</option>
             </Select>
           </Field>
-          <Field label="服务器名"><Input value={form.serverName} onChange={(e) => setForm({ ...form, serverName: e.target.value })} /></Field>
+          <Field label="主机名称"><Input value={form.serverName} onChange={(e) => setForm({ ...form, serverName: e.target.value })} placeholder="如：业务管理部03" /></Field>
           <Field label="IP"><Input value={form.serverIp} onChange={(e) => setForm({ ...form, serverIp: e.target.value })} /></Field>
-          <Field label="Hostname"><Input value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} /></Field>
+          <Field label="主机名"><Input value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} placeholder="如：业务管理部03" /></Field>
           <Field label="端口"><Input type="number" value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} /></Field>
           <Field label="Protocol"><Input value={form.protocol} onChange={(e) => setForm({ ...form, protocol: e.target.value })} /></Field>
           <Field label="Service"><Input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} /></Field>
@@ -767,6 +836,7 @@ function DeploymentPanel({
           <Field label="Runtime"><Input value={form.runtime} onChange={(e) => setForm({ ...form, runtime: e.target.value })} /></Field>
           <Field label="Database"><Input value={form.database} onChange={(e) => setForm({ ...form, database: e.target.value })} /></Field>
           <Field label="版本"><Input value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })} /></Field>
+          <Field label="最后验证日期"><Input type="date" value={form.lastVerifiedAt} onChange={(e) => setForm({ ...form, lastVerifiedAt: e.target.value })} /></Field>
         </div>
         <div className="mt-3">
           <Label className="block mb-1">备注</Label>
@@ -796,13 +866,14 @@ function DocumentsPanel({
   const [stage, setStage] = useState<'choose' | 'uploading'>('choose');
   const [previewDoc, setPreviewDoc] = useState<any | null>(null);
   const [meta, setMeta] = useState({
-    docType: 'REQUIREMENT' as 'REQUIREMENT' | 'DESIGN' | 'DEPLOYMENT' | 'TESTING' | 'ACCEPTANCE' | 'OPERATIONS' | 'OTHER',
+    docType: 'REQUIREMENT' as 'REQUIREMENT' | 'DOCUMENT' | 'DEPLOYMENT' | 'TESTING' | 'ACCEPTANCE' | 'OTHER',
     title: '',
     version: '1.0',
     isCurrent: true,
     notes: '',
   });
   const [file, setFile] = useState<File | null>(null);
+  const documentItems = items?.filter((item) => item.docType !== 'SCREENSHOT') ?? null;
 
   async function onUpload() {
     if (!file) { setError('请选择文件'); return; }
@@ -871,9 +942,9 @@ function DocumentsPanel({
         </div>
       )}
 
-      {items == null ? (
+      {documentItems == null ? (
         <div className="text-sm text-muted">加载中…</div>
-      ) : items.length === 0 ? (
+      ) : documentItems.length === 0 ? (
         <Card><EmptyState title="暂无文档" description="如有需求文档、部署文档、操作说明等，可在此上传。" /></Card>
       ) : (
         <Card>
@@ -890,7 +961,7 @@ function DocumentsPanel({
               </tr>
             </thead>
             <tbody>
-              {items.map((d) => (
+              {documentItems.map((d) => (
                 <tr key={d.id}>
                   <Td>
                     <button
@@ -936,11 +1007,10 @@ function DocumentsPanel({
           <Field label="文档类型 *" required>
             <Select value={meta.docType} onChange={(e) => setMeta({ ...meta, docType: e.target.value as never })}>
               <option value="REQUIREMENT">需求文档</option>
-              <option value="DESIGN">设计 / 开发文档</option>
+              <option value="DOCUMENT">设计 / 开发文档</option>
               <option value="DEPLOYMENT">部署文档</option>
               <option value="TESTING">测试报告</option>
               <option value="ACCEPTANCE">验收资料</option>
-              <option value="OPERATIONS">操作说明</option>
               <option value="OTHER">其他</option>
             </Select>
           </Field>
@@ -968,6 +1038,169 @@ function DocumentsPanel({
               className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-white"
             />
           </div>
+        </div>
+      </Modal>
+
+      <DocumentPreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />
+    </div>
+  );
+}
+
+function ImagesPanel({
+  projectId,
+  canEdit,
+  items,
+  onChanged,
+}: {
+  projectId: string;
+  canEdit: boolean;
+  items: any[] | null;
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<any | null>(null);
+  const imageItems = items?.filter((item) => item.docType === 'SCREENSHOT') ?? null;
+
+  function closeModal(force = false) {
+    if (saving && !force) return;
+    setOpen(false);
+    setFiles([]);
+    setError(null);
+    setProgress('');
+  }
+
+  async function uploadOne(file: File) {
+    const start = await apiFetch<{ attachmentId: string; uploadUrl: string }>(`/api/projects/${projectId}/documents`, {
+      method: 'POST',
+      body: JSON.stringify({
+        mode: 'start',
+        fileName: file.name,
+        size: file.size,
+        mimeType: file.type || undefined,
+      }),
+    });
+    const putRes = await fetch(start.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: await file.arrayBuffer(),
+    });
+    if (!putRes.ok) throw new Error(`文件上传失败 (${putRes.status})`);
+
+    await apiFetch(`/api/projects/${projectId}/documents`, {
+      method: 'POST',
+      body: JSON.stringify({
+        mode: 'create',
+        attachmentId: start.attachmentId,
+        docType: 'SCREENSHOT',
+        title: file.name.replace(/\.[^/.]+$/, '') || file.name,
+        version: null,
+        isCurrent: true,
+        notes: null,
+      }),
+    });
+  }
+
+  async function uploadImages() {
+    if (!files.length) { setError('请选择一张或多张图片'); return; }
+    setSaving(true);
+    setError(null);
+    let uploaded = 0;
+    try {
+      for (const [index, file] of files.entries()) {
+        setProgress(`正在上传 ${index + 1}/${files.length}：${file.name}`);
+        await uploadOne(file);
+        uploaded += 1;
+      }
+      closeModal(true);
+      onChanged();
+    } catch (e) {
+      setError(`已上传 ${uploaded}/${files.length} 张；${e instanceof Error ? e.message : '上传失败'}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (!confirm('删除该图片？')) return;
+    await apiFetch(`/api/documents/${id}`, { method: 'DELETE' });
+    onChanged();
+  }
+
+  return (
+    <div className="space-y-4 mt-4">
+      {canEdit && (
+        <div className="flex justify-end">
+          <Button onClick={() => setOpen(true)}><Plus size={14} /> 批量上传图片</Button>
+        </div>
+      )}
+
+      {imageItems == null ? (
+        <div className="text-sm text-muted">加载中…</div>
+      ) : imageItems.length === 0 ? (
+        <Card><EmptyState title="暂无图片" description="支持一次选择多张 PNG、JPG、WebP 或 GIF 图片，单张最大 50 MB。" /></Card>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {imageItems.map((image) => (
+            <Card key={image.id} className="group overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setPreviewDoc(image)}
+                className="block w-full bg-slate-100 text-left"
+                title="查看原图"
+              >
+                <img
+                  src={`/api/documents/${image.id}/preview`}
+                  alt={image.title}
+                  className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-[1.02]"
+                />
+              </button>
+              <div className="flex items-center gap-2 px-3 py-2">
+                <span className="min-w-0 flex-1 truncate text-xs text-fg" title={image.title}>{image.title}</span>
+                {canEdit && (
+                  <button className="shrink-0 text-muted hover:text-red-600" onClick={() => remove(image.id)} title="删除图片">
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal open={open} onClose={closeModal} title="批量上传图片" size="lg" footer={
+        <>
+          <Button variant="ghost" onClick={() => closeModal()} disabled={saving}>取消</Button>
+          <Button onClick={uploadImages} loading={saving} disabled={!files.length}>
+            {saving ? '上传中…' : `上传 ${files.length} 张图片`}
+          </Button>
+        </>
+      }>
+        {error && <div className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+        <div className="space-y-3">
+          <div>
+            <Label className="mb-1 block">选择图片（可多选，单张最大 50 MB）</Label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={saving}
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-white"
+            />
+          </div>
+          {files.length > 0 && (
+            <div className="rounded-md border border-border bg-slate-50 p-3">
+              <div className="mb-2 text-sm font-medium">已选择 {files.length} 张图片</div>
+              <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-muted">
+                {files.map((file) => <li key={`${file.name}-${file.size}`}>{file.name}（{Math.ceil(file.size / 1024)} KB）</li>)}
+              </ul>
+            </div>
+          )}
+          {progress && <div className="text-sm text-muted">{progress}</div>}
         </div>
       </Modal>
 
@@ -1190,7 +1423,7 @@ function ArchivePanel({
       <Card>
         <CardHeader
           title="归档完整度"
-          description={`分项勾选会按权重计入总分，状态为 COMPLETED 或 ARCHIVED 时生效。`}
+          description="分项勾选会按权重计入总分；将鼠标移至检查项旁的问号可查看检查标准。"
           actions={
             isPrivileged && project.status !== 'ARCHIVED' ? (
               <Button onClick={() => setOpen(true)}>整理档案并归档</Button>
@@ -1214,6 +1447,7 @@ function ArchivePanel({
                 <thead>
                   <tr>
                     <Th>检查项</Th>
+                    <Th>中文说明</Th>
                     <Th align="right">自动判定</Th>
                     <Th align="right">人工确认</Th>
                   </tr>
@@ -1221,7 +1455,25 @@ function ArchivePanel({
                 <tbody>
                   {state.items.map((it: any) => (
                     <tr key={it.key}>
-                      <Td>{it.key}</Td>
+                      <Td>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs">{it.key}</span>
+                          <span
+                            className="inline-flex text-muted"
+                            title={`检查标准：${it.criteria}`}
+                            aria-label={`检查标准：${it.criteria}`}
+                          >
+                            <CircleHelp size={14} />
+                          </span>
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-fg">{it.label}</span>
+                          <Badge tone="neutral">{it.weight} 分</Badge>
+                        </div>
+                        <div className="mt-0.5 text-xs text-muted">{it.description}</div>
+                      </Td>
                       <Td align="right">
                         {it.isAutoChecked ? <Badge tone="green">✓ 自动满足</Badge> : <Badge tone="neutral">未满足</Badge>}
                       </Td>
