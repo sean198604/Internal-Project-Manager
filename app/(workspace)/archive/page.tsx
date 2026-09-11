@@ -9,6 +9,7 @@ import { getActorOrNull } from '@/server/lib/auth';
 import { isAdminOrMaster } from '@/server/lib/authz';
 import { formatDateTime } from '@/lib/time';
 import { WorkspacePageHeader } from '@/components/layout/workspace-shell';
+import { formatPreferredDeploymentPorts, preferredDeploymentPorts } from '@/lib/deployment-ports';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export default async function ArchivePage({
     redirect('/dashboard');
   }
 
-  // port 排序：拉到足够数据后内存里按首个部署端口排；
+  // port 排序：拉到足够数据后按本地服务器优先的端口规则在内存中排序；
   // take 设为 500，覆盖实际场景（21 项 / 全量也够）
   const listTake = 500;
   const [completed, archived, cancelled, merged, incomplete] = await Promise.all([
@@ -62,7 +63,7 @@ export default async function ArchivePage({
         department: { select: { name: true } },
         projectType: { select: { name: true } },
         maintainer: { select: { displayName: true } },
-        deployments: { select: { port: true, lastVerifiedAt: true }, orderBy: { lastVerifiedAt: 'desc' as const } },
+        deployments: { select: { port: true, serverIp: true, serverName: true, hostname: true, lastVerifiedAt: true }, orderBy: { lastVerifiedAt: 'desc' as const } },
       },
     }),
     prisma.project.count({ where: { status: 'CANCELLED', deletedAt: null } }),
@@ -77,7 +78,7 @@ export default async function ArchivePage({
       take: 15,
       include: {
         department: { select: { name: true } },
-        deployments: { select: { port: true, lastVerifiedAt: true }, orderBy: { lastVerifiedAt: 'desc' as const } },
+        deployments: { select: { port: true, serverIp: true, serverName: true, hostname: true, lastVerifiedAt: true }, orderBy: { lastVerifiedAt: 'desc' as const } },
       },
     }),
   ]);
@@ -86,8 +87,8 @@ export default async function ArchivePage({
   if (sort === 'port') {
     const dir = order === 'asc' ? -1 : 1;
     archived.sort((a: typeof archived[number], b: typeof archived[number]) => {
-      const ap = a.deployments?.[0]?.port ?? Infinity;
-      const bp = b.deployments?.[0]?.port ?? Infinity;
+      const ap = preferredDeploymentPorts(a.deployments)[0] ?? Infinity;
+      const bp = preferredDeploymentPorts(b.deployments)[0] ?? Infinity;
       return ap === bp ? 0 : (ap < bp ? dir : -dir);
     });
   }
@@ -165,7 +166,7 @@ export default async function ArchivePage({
       <Card>
         <CardHeader
           title="最近归档"
-          description={`${archived.length} 项 · 默认按归档时间倒序 · 归档时间 = docker 最后部署启动时间`}
+          description={`${archived.length} 项 · 默认按归档时间倒序 · 本地服务器端口优先展示，多个端口以逗号分隔`}
           actions={
             <div className="flex max-w-[55vw] items-center gap-1 overflow-x-auto text-[12px] text-slate-600 sm:max-w-none sm:gap-2">
               <span className="text-slate-500">排序：</span>
@@ -208,7 +209,7 @@ export default async function ArchivePage({
                     <Td className="text-slate-600">{p.maintainer?.displayName ?? '—'}</Td>
                     <Td align="center"><StarRating value={p.rating} size={12} /></Td>
                     <Td align="center" className="font-mono tabular-nums text-[12.5px] text-slate-700">
-                      {p.deployments?.[0]?.port ?? '—'}
+                      {formatPreferredDeploymentPorts(p.deployments)}
                     </Td>
                     <Td align="center">
                       <Badge tone={p.archiveCompleteness >= 60 ? 'green' : 'amber'}>

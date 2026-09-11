@@ -1,6 +1,7 @@
 import type { Role } from '@prisma/client';
 import { formatDate, formatDateTime } from '@/lib/time';
 import { computeDerived } from './derivation';
+import { preferredDeploymentPorts } from '@/lib/deployment-ports';
 import type { Scope } from '@/server/lib/authz';
 import type { ProjectStatus, Priority, HealthStatus } from '@prisma/client';
 
@@ -31,7 +32,12 @@ type ListRowForSerializer = {
   projectType: { id: string; name: string } | null;
   owner: { id: string; displayName: string } | null;
   // 仅 listProjects 取得到；create/update 路径缺失 → 选填
-  deployments?: Array<{ port: number | null }>;
+  deployments?: Array<{
+    port: number | null;
+    serverIp?: string | null;
+    serverName?: string | null;
+    hostname?: string | null;
+  }>;
 };
 
 /**
@@ -46,8 +52,8 @@ export function toListItem(row: ListRowForSerializer) {
     createdAt: row.createdAt,
   });
 
-  // 端口排序（仅在 listProjects 携带了 deployments 时才有意义）
-  const firstPort = row.deployments?.[0]?.port ?? null;
+  // 本地服务器端口优先；本地存在多个端口时完整保留，以便列表使用逗号展示。
+  const deploymentPorts = preferredDeploymentPorts(row.deployments);
 
   return {
     id: row.id,
@@ -71,7 +77,8 @@ export function toListItem(row: ListRowForSerializer) {
     department: row.department,
     projectType: row.projectType,
     owner: row.owner,
-    deploymentPort: firstPort,
+    deploymentPort: deploymentPorts[0] ?? null,
+    deploymentPorts,
     derived,
   };
 }

@@ -1,6 +1,7 @@
 import { Prisma, type ProjectStatus, type Priority, type HealthStatus } from '@prisma/client';
 import { prisma } from '@/server/db/prisma';
 import { buildProjectWhere, type Scope } from '@/server/lib/authz';
+import { preferredDeploymentPorts } from '@/lib/deployment-ports';
 import type { z } from 'zod';
 import type { listProjectsSchema } from './schema';
 
@@ -26,11 +27,9 @@ export const PROJECT_LIST_SELECT = {
   department: { select: { id: true, name: true } },
   projectType: { select: { id: true, name: true } },
   owner: { select: { id: true, displayName: true } },
-  // 按端口排序：取首个部署的端口（部署一般 N:1，端口数为单值）；
-  // Prisma 不支持按 relation 字段 SQL 排序，listProjects() 在内存里二次排。
+  // 端口展示/排序遵循「本地服务器优先」规则，需取得全部部署后在内存中处理。
   deployments: {
-    select: { port: true },
-    take: 1,
+    select: { port: true, serverIp: true, serverName: true, hostname: true },
     orderBy: { lastVerifiedAt: 'desc' as const },
   },
 } satisfies Prisma.ProjectSelect;
@@ -119,7 +118,7 @@ const SORT_FIELD_MAP: Record<ListProjectsParams['sort'], string> = {
 export async function listProjects(scope: Scope, params: ListProjectsParams) {
   const where = buildListWhere(scope, params);
   // port 不走 SQL orderBy（Prisma 不支持 relation 字段排序），退而求其次：
-  // 先按 updatedAt 拉一窗，再在内存里按首个部署的端口排。会轻微影响分页稳定性，但数据量小可接受。
+  // 先按 updatedAt 拉一窗，再按本地服务器优先的端口规则在内存中排序。
   const sortField = params.sort === 'port' ? 'updatedAt' : SORT_FIELD_MAP[params.sort];
   const orderBy: Prisma.ProjectOrderByWithRelationInput = { [sortField]: params.order };
 
@@ -140,8 +139,8 @@ export async function listProjects(scope: Scope, params: ListProjectsParams) {
 
   if (params.sort === 'port') {
     rows.sort((a, b) => {
-      const ap = (a.deployments?.[0]?.port ?? Infinity) as number;
-      const bp = (b.deployments?.[0]?.port ?? Infinity) as number;
+      const ap = preferredDeploymentPorts(a.deployments)[0] ?? Infinity;
+      const bp = preferredDeploymentPorts(b.deployments)[0] ?? Infinity;
       return params.order === 'asc' ? ap - bp : bp - ap;
     });
   }
