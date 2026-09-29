@@ -1,0 +1,31 @@
+<p align="center"><img src="assets/readme-cover.png" alt="Internal Project Manager project cover" width="100%" /></p>
+
+# Internal-Project-Manager
+
+**项目生命周期与软件资产知识中心**
+
+集中登记、跟踪、验收与归档内部软件项目，覆盖项目资料、部署记录、文档、截图、时间线和软件资产沉淀。
+
+## 核心能力
+
+- 项目编号、状态流转、负责人、优先级与进度管理。
+- 项目部署记录、文档/截图附件、时间线与审计日志。
+- 已完成与已归档项目分层管理，支持资产化沉淀。
+- 基于角色与部门范围的数据访问控制。
+
+## 技术栈
+
+Next.js、TypeScript、Prisma、PostgreSQL、Docker Compose。
+
+## 本地运行
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+首次运行前，请在私有 `.env` 中设置数据库连接、JWT 密钥和管理员账号；不要提交真实凭据、上传附件或数据库文件。
+
+## 安全说明
+
+本项目管理内部资料。公开仓库仅包含可部署源码与脱敏示例配置；实际业务数据、部署环境和用户上传文件必须保留在受控存储中。
