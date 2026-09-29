@@ -1,5 +1,3 @@
-<p align="center"><img src="assets/readme-cover.png" alt="Internal Project Manager project cover" width="100%" /></p>
-
 # Internal-Project-Manager
 
 **项目生命周期与软件资产知识中心**
